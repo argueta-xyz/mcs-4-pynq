@@ -1,3 +1,8 @@
+
+# Created by https://www.gitignore.io/api/python,xilinxvivado
+# Edit at https://www.gitignore.io/?templates=python,xilinxvivado
+
+### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -20,6 +25,8 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -56,6 +63,7 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
+db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -79,6 +87,13 @@ ipython_config.py
 
 # pyenv
 .python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
 
 # celery beat schedule file
 celerybeat-schedule
@@ -112,3 +127,66 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+### XilinxVivado ###
+#########################################################################################################
+##	This is an example .gitignore file for Vivado, please treat it as an example as
+##	it might not be complete. In addition, XAPP 1165 should be followed.
+#########
+#Exclude simulation outputs
+*.o
+*.lxt
+###########################################################################
+##	VIVADO
+#Source files:
+#Do NOT ignore VHDL, Verilog, block diagrams or EDIF files.
+!*.vhd
+!*.v
+!*.sv
+!*.bd
+!*.edif
+#IP files
+#.xci: IP-core property file with core container disabled
+!*.xci
+#*.dcp (checkpoint files: better be ignored!)
+#!*.dcp
+!*.vds
+!*.pb
+#All bd comments and layout coordinates are stored within .ui
+!*.ui
+!*.ooc
+#System Generator
+!*.mdl
+!*.slx
+!*.bxml
+#Simulation logic analyzer
+!*.wcfg
+!*.coe
+#MIG
+!*.prj
+!*.mem
+#Project files
+#XPR  +  *.XML ? XPR (Files are merged into a single XPR file for 2014.1 version)
+#Do NOT ignore *.xpr files
+!*.xpr
+#Include *.xml files for 2013.4 or earlier version
+!*.xml
+#Constraint files
+#Do NOT ignore *.xdc files
+!*.xdc
+#TCL - files
+!*.tcl
+#Journal - files
+!*.jou
+#Reports
+!*.rpt
+!*.txt
+!*.vdi
+#C-files
+!*.c
+!*.h
+!*.elf
+!*.bmm
+!*.xmp
+
+# End of https://www.gitignore.io/api/python,xilinxvivado
