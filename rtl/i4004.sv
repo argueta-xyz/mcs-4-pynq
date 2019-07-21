@@ -19,8 +19,8 @@ always @(posedge clk) begin
     clk_count <= 0;
     icyc <= mcs4::A1;
   end else begin
-     clk_count <= clk_count + 4'h1;
-     icyc <= icyc + (((clk_count % 2) == 1)? 3'd1 : 3'd0);
+    clk_count <= clk_count + 4'h1;
+    icyc <= mcs4::instr_cyc_t'(clk_count/2);
   end
   clken_1 <= clk_count % 2 == 0;
   clken_2 <= clk_count % 2 == 1;
@@ -41,14 +41,14 @@ mcs4::byte_t ram_ctl;
 logic io_read;
 always @(posedge clk) begin
   case (icyc)
-    A1 : bus <= addr_buff[0];
-    A2 : bus <= addr_buff[1];
-    A3 : bus <= addr_buff[2];
-    M1 : bus <= inst.opr;
-    M2 : bus <= inst.opa;
-    X1 : bus <= '0;
-    X2 : bus <= io_read? ram_ctl : dbus_in;
-    X3 : bus <= ram_ctl;
+    mcs4::A1 : bus <= addr_buff[0];
+    mcs4::A2 : bus <= addr_buff[1];
+    mcs4::A3 : bus <= addr_buff[2];
+    mcs4::M1 : bus <= inst.opr;
+    mcs4::M2 : bus <= inst.opa;
+    mcs4::X1 : bus <= '0;
+    mcs4::X2 : bus <= io_read? ram_ctl : dbus_in;
+    mcs4::X3 : bus <= ram_ctl;
     default : bus <= addr_buff[0];
   endcase // icyc
 end
