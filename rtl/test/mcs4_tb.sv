@@ -1,11 +1,14 @@
 `timescale 1 ns/1 ns  // time-unit = 1 ns, precision = 1 ns
 
-module mcs4_tb;
+module mcs4_tb(
+  input         clk,
+  input         rst
+);
+`ifdef IVERILOG
   initial begin
     $dumpfile("mcs4.lxt");
     $dumpvars;
   end
-
 
   logic clk = 0;
   logic rst = 1;
@@ -17,6 +20,7 @@ module mcs4_tb;
   end
 
   always #5 clk = ~clk;
+`endif // IVERILOG
 
 
   i4004 cpu (
