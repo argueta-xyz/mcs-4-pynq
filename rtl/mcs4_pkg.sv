@@ -13,7 +13,6 @@ package mcs4;
   // Register file
   localparam Num_regs            = 16;
   localparam Num_reg_pairs       = Num_regs / 2;
-  localparam Reg_addr_width      = $clog2(Num_regs);
   localparam Reg_pair_addr_width = $clog2(Num_reg_pairs);
 
   // ROM
@@ -35,8 +34,11 @@ package mcs4;
   typedef logic [Addr_width-1:0] addr_t;
 
   // Register File
-  typedef logic [Reg_addr_width-1:0] raddr_t;
   typedef logic [Reg_pair_addr_width-1:0] rpaddr_t;
+  typedef struct packed {
+    rpaddr_t pair;
+    logic    single;
+  } raddr_t;
 
   // RAM
   typedef logic [$clog2(Num_ram_banks)-1:0]      ram_bank_sel_t;

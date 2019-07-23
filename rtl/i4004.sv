@@ -87,21 +87,23 @@ end
 assign addr_overflow = addr_carry[2];
 
 // Index Register
-mcs4::char_t [mcs4::Num_reg_pairs-1:0][1:0] index_register;
-mcs4::char_t [1:0] irp_wbuf;
-mcs4::char_t [1:0] irp_rbuf;
-mcs4::raddr_t      ir_addr;
-mcs4::rpaddr_t     irp_addr;
-logic pair_mode, ir_wen;
-always @(posedge clk) begin : proc_index_register
-  if(ir_wen) begin
+mcs4::char_t [mcs4::Num_reg_pairs-1:0][1:0] idx_reg;
+mcs4::char_t [1:0] idxr_wbuf;
+mcs4::char_t [1:0] idxr_rbuf;
+mcs4::raddr_t      idxr_addr;
+logic pair_mode, idxr_wen;
+always @(posedge clk) begin : proc_idx_reg
+  if(idxr_wen) begin
     if(pair_mode) begin
-      index_register[irp_addr] <= irp_wbuf;
+      // According to spec:
+      //   ODD:  ADDR_LO or DATA_LO
+      //   EVEN: ADDR_MD or DATA_HI
+      {idx_reg[idxr_addr.pair][1], idx_reg[idxr_addr.pair][0]} <= idxr_wbuf;
     end else begin
-      index_register[irp_addr][ir_addr[0]] <= irp_wbuf[0];
+      idx_reg[idxr_addr.pair][idxr_addr.single] <= idxr_wbuf[0];
     end
   end else begin
-    irp_rbuf <= index_register[irp_addr];
+    idxr_rbuf <= idx_reg[idxr_addr];
   end
 end
 
@@ -210,28 +212,33 @@ end
 always @(posedge clk) begin : proc_decode_opa
    if(icyc == mcs4::X1) begin
     case (opa_type)
-      mcs4::REG     : ird_reg <= instr[0].opa;
-      mcs4::REG_PR  : {ird_reg_pair, instr_mod} <= bus; //instr[0].opa;
-      mcs4::DATA_LO : ird_data[0] <= bus; //instr[0].opa;
-      mcs4::ADDR_HI : ird_addr[2] <= bus; //instr[0].opa
-      mcs4::ADDR_LO : ird_addr[0] <= bus; //instr[1].opa
-      mcs4::COND    : ird_cond <= bus; // instr.opa;
+      mcs4::REG     : ird_reg <= bus;
+      mcs4::REG_PR  : {ird_reg_pair, instr_mod} <= bus;
+      mcs4::DATA_LO : ird_data[0] <= bus;
+      mcs4::ADDR_HI : ird_addr[2] <= bus;
+      mcs4::ADDR_LO : ird_addr[0] <= bus;
+      mcs4::COND    : ird_cond <= bus;
       mcs4::IORAM   : begin
-        case (instr[0].opa)
-
+        case (bus)
           default : begin
-            /* default */;
+            /* TODO: Implement IO/RAM instructions */;
           end
         endcase
       end
-      mcs4::ACCUM   : ;
+      mcs4::ACCUM   : begin
+        case (bus)
+          default : begin
+            /* TODO: Implement Accumulate instructions */;
+          end
+        endcase
+      end
       default : begin
         /* default */;
       end
     endcase
     case (opr_type)
-      mcs4::ADDR_MD : ird_addr[1] <= instr[1].opr;
-      mcs4::DATA_HI : ird_data[1] <= instr[1].opr;
+      mcs4::ADDR_MD : ird_addr[1] <= bus;
+      mcs4::DATA_HI : ird_data[1] <= bus;
       default : ;
     endcase
    end
