@@ -21,56 +21,12 @@ always @(posedge clk) begin
     icyc <= mcs4::A1;
   end else begin
     clk_count <= clk_count + 4'h1;
-    icyc <= mcs4::instr_cyc_t'(clk_count/2);
+    icyc <= mcs4::instr_cyc_t'(clk_count);
   end
   clken_1 <= clk_count % 2 == 0;
   clken_2 <= clk_count % 2 == 1;
   sync <= clk_count > 13;
 end
-
-// Address Register
-// [ADDRESS REGISTER 4x12b DRAM]
-mcs4::addr_t [3:0] stack;
-logic        [1:0] stack_ptr;
-mcs4::addr_t       pc, next_pc;
-logic stack_push, stack_pop;
-// Stack logic
-always @(posedge clk) begin
-  if(rst) begin
-    stack_ptr <= 0;
-    pc <= 0;
-  end else if(stack_push) begin
-    stack[stack_ptr] <= pc;
-    stack_ptr <= stack_ptr + 1;
-    pc <= next_pc;
-  end else if(stack_pop) begin
-    stack_ptr <= stack_ptr - 1;
-    pc <= stack[stack_ptr - 2'd1];
-  end else begin
-    stack[stack_ptr] <= next_pc;
-    pc <= next_pc;
-  end
-end
-
-// Address incrementer
-mcs4::char_t [2:0] addr_buff;
-mcs4::char_t [2:0] addr_incr;
-logic        [2:0] addr_carry;
-logic              addr_overflow;
-always_ff @(posedge clk) begin
-  if(rst) begin
-    addr_incr[0] <= 0;
-    addr_incr[1] <= 0;
-    addr_incr[2] <= 0;
-    addr_carry <= '0;
-  end else begin
-    // Spec calls for lookahead adder, whoops
-    {addr_carry[0], addr_incr[0]} <= addr_buff[0] + 1;
-    {addr_carry[1], addr_incr[1]} <= addr_buff[1] + addr_carry[0];
-    {addr_carry[2], addr_incr[2]} <= addr_buff[2] + addr_carry[1];
-  end
-end
-assign addr_overflow = addr_carry[2];
 
 // Index Register
 mcs4::char_t [mcs4::Num_reg_pairs-1:0][1:0] idx_reg;
@@ -78,20 +34,6 @@ mcs4::char_t [1:0] idxr_wbuf;
 mcs4::char_t [1:0] idxr_rbuf;
 mcs4::raddr_t      idxr_addr;
 logic pair_mode, idxr_wen;
-always @(posedge clk) begin : proc_idx_reg
-  if(idxr_wen) begin
-    if(pair_mode) begin
-      // According to spec:
-      //   ODD:  ADDR_LO or DATA_LO
-      //   EVEN: ADDR_MD or DATA_HI
-      {idx_reg[idxr_addr.pair][1], idx_reg[idxr_addr.pair][0]} <= idxr_wbuf;
-    end else begin
-      idx_reg[idxr_addr.pair][idxr_addr.single] <= idxr_wbuf[0];
-    end
-  end else begin
-    idxr_rbuf <= idx_reg[idxr_addr];
-  end
-end
 
 // ==========================
 // M1 CYCLE
@@ -219,12 +161,71 @@ always @(posedge clk) begin : proc_decode_opa
    end
 end
 
+// Determine addr & control for Index Register R/W
+assign pair_mode = opa_type == mcs4::REG_PR;
+assign idxr_addr = pair_mode? {ird_reg_pair, 1'b0} : ird_reg;
+assign idxr_wen  = (instr[0].opr == mcs4::FIN ||
+                    instr[0].opr == mcs4::INC ||
+                    instr[0].opr == mcs4::ISZ ||
+                    instr[0].opr == mcs4::XCH);
+
 // ==========================
 // X2 CYCLE
 // ==========================
+// Address Register
+// [ADDRESS REGISTER 4x12b DRAM]
+mcs4::addr_t [3:0] stack;
+logic        [1:0] stack_ptr;
+mcs4::addr_t       pc, next_pc;
+logic stack_push, stack_pop;
+logic end_of_page;
+// Stack logic
+always @(posedge clk) begin
+  if(rst) begin
+    stack_ptr <= 0;
+  end else if(icyc == mcs4::X2) begin
+    if(instr[0].opr == mcs4::JMS) begin
+      // Stack push
+      stack_ptr <= stack_ptr + 1;
+      stack[stack_ptr] <= next_pc;
+    end else if(instr[0].opr == mcs4::BBL) begin
+      // Stack pop
+      stack_ptr <= stack_ptr - 1;
+    end else begin
+      stack[stack_ptr] <= next_pc;
+    end
+  end
+  // stack_ptr <= 2'b11;
+  // stack[stack_ptr] <= 12'hFED;//next_pc;
+
+  end_of_page <= pc[1:0] == 8'hFF;
+end
+assign pc = rst? '0 : stack[stack_ptr];
+
+// Address incrementer
+mcs4::char_t [2:0] addr_buff;
+mcs4::char_t [2:0] addr_incr;
+logic        [2:0] addr_carry;
+logic              addr_overflow;
+always_ff @(posedge clk) begin
+  if(rst) begin
+    addr_buff <= 0;
+    addr_incr[0] <= 0;
+    addr_incr[1] <= 0;
+    addr_incr[2] <= 0;
+    addr_carry <= '0;
+  end else begin
+    addr_buff <= icyc == mcs4::X1? pc : addr_buff;
+    // Spec calls for lookahead adder, whoops
+    {addr_carry[0], addr_incr[0]} <= addr_buff[0] + 1;
+    {addr_carry[1], addr_incr[1]} <= addr_buff[1] + addr_carry[0];
+    {addr_carry[2], addr_incr[2]} <= addr_buff[2] + addr_carry[1];
+  end
+end
+assign addr_overflow = addr_carry[2];
+
 // Next address selection
 // [DECODER DRIVER & MUX]
-logic [2:0] next_addr_mode;
 logic jump_condition;
 always @(posedge clk) begin
   if(rst) begin
@@ -233,21 +234,55 @@ always @(posedge clk) begin
   end else begin
     if(icyc == mcs4::X2) begin
       case (instr[0].opr)
-        mcs4::JCN : next_pc <= jump_condition? {pc[2], ird_addr[1:0]} : addr_incr;
-        mcs4::JUN : next_pc <= '0;
-        mcs4::JMS : next_pc <= '0;
-        mcs4::ISZ : next_pc <= '0;
+        mcs4::JCN : next_pc <=  jump_condition?
+                                  {(end_of_page? addr_incr[2] : pc[2]), ird_addr[1:0]} :
+                                  addr_incr;
+        mcs4::JUN : next_pc <= ird_addr;
+        mcs4::JMS : next_pc <= ird_addr;
+        // mcs4::ISZ : next_pc <= TODO;
         default : next_pc <= addr_incr;
       endcase
       if(ird_cond[0]) begin
-        jump_condition <= ird_cond[1] && (acc != 0) ||
-                          ird_cond[2] && (carry_lnk == 0) ||
-                          ird_cond[3] && (test == 1)
+        jump_condition <= ird_cond[1] && (accum != 0) ||
+                          ird_cond[2] && (carry == 0) ||
+                          ird_cond[3] && (test == 1);
       end else begin
-        jump_condition <= ird_cond[1] && (acc == 0) ||
-                          ird_cond[2] && (carry_lnk == 1) ||
-                          ird_cond[3] && (test == 0)
+        jump_condition <= ird_cond[1] && (accum == 0) ||
+                          ird_cond[2] && (carry == 1) ||
+                          ird_cond[3] && (test == 0);
       end
+    end
+  end
+end
+
+always_ff @(posedge clk) begin : proc_idxr_wbuf
+  if(rst) begin
+    idxr_wbuf <= 0;
+  end else begin
+    case (instr[0].opr)
+      // mcs4::ISZ : idxr_wbuf <= TODO
+      default :   ;
+    endcase
+  end
+end
+
+// ==========================
+// X3 CYCLE
+// ==========================
+always @(posedge clk) begin : proc_idx_reg
+  if(icyc == mcs4::X1) begin
+    idxr_rbuf <= ird_reg[idxr_addr.pair];
+  end else if(icyc == mcs4::X3) begin
+    if(idxr_wen) begin
+      if(pair_mode) begin
+        // According to spec:
+        //   ODD:  ADDR_LO or DATA_LO
+        //   EVEN: ADDR_MD or DATA_HI
+        {idx_reg[idxr_addr.pair][1], idx_reg[idxr_addr.pair][0]} <= idxr_wbuf;
+      end else begin
+        idx_reg[idxr_addr.pair][idxr_addr.single] <= idxr_wbuf[0];
+      end
+    end else begin
     end
   end
 end
@@ -264,11 +299,11 @@ always_ff @(posedge clk) begin : proc_accum
   end else begin
     if(icyc == mcs4::X2) begin
       case (instr[0].opr)
-        LDM:   accum <= instr[0].opa;
-        ACCUM: {carry, accum} <= accum + adb_buf + carry;
-        LROT:  accum <= accum << 1;
-        RROT:  accum <= accum >> 1;
-        default :   ;
+        // LDM:   accum <= instr[0].opa;
+        // ACCUM: {carry, accum} <= accum + adb_buf + carry;
+        // LROT:  accum <= accum << 1;
+        // RROT:  accum <= accum >> 1;
+        default : /**/  ;
       endcase
     end
   end
@@ -325,12 +360,9 @@ end
 
 
 // Lint unused
-assign stack_ptr = '0;
 assign dbus_out = bus;
 assign cm_ram = '0;
 assign cm_rom = '0;
-assign stack = '0;
-assign addr_buff = '0;
 assign ram_ctl = '0;
 assign io_read = '0;
 
