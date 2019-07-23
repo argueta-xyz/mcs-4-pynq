@@ -25,7 +25,7 @@ always @(posedge clk) begin
   end
   clken_1 <= clk_count % 2 == 0;
   clken_2 <= clk_count % 2 == 1;
-  sync <= clk_count > 13;
+  sync <= icyc == mcs4::X3;
 end
 
 // Index Register
