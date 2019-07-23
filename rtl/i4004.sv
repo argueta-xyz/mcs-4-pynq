@@ -52,20 +52,6 @@ always @(posedge clk) begin
   end
 end
 
-// Next address selection
-// [DECODER DRIVER & MUX]
-logic [2:0] next_addr_mode;
-always @(posedge clk) begin
-  if(rst) begin
-    next_pc <= 0;
-  end else begin
-    case (next_addr_mode)
-      3'd0: next_pc <= addr_incr;
-      default : next_pc <= addr_incr;
-    endcase
-  end
-end
-
 // Address incrementer
 mcs4::char_t [2:0] addr_buff;
 mcs4::char_t [2:0] addr_incr;
@@ -107,25 +93,9 @@ always @(posedge clk) begin : proc_idx_reg
   end
 end
 
-// Adder
-mcs4::char_t adb_buf;
-mcs4::char_t accum;
-logic        carry;
-logic [2:0]  cm_ctl;
-logic [2:0]  accum_ctl;
-always_ff @(posedge clk) begin : proc_accum
-  if(rst) begin
-    accum <= 0;
-  end else begin
-    // case (accum_ctl)
-    //   ACCUM: {carry, accum} <= accum + adb_buf + carry;
-    //   LROT:  accum <= accum << 1;
-    //   RROT:  accum <= accum >> 1;
-    //   default :   ;
-    // endcase
-  end
-end
-
+// ==========================
+// M1 CYCLE
+// ==========================
 // Instruction Register Decode & Control
 mcs4::instr_t [1:0] instr;
 logic         double_instr;
@@ -136,7 +106,6 @@ mcs4::rpaddr_t     ird_reg_pair;
 mcs4::char_t [1:0] ird_data;
 mcs4::char_t [2:0] ird_addr;
 mcs4::char_t       ird_cond;
-
 
 always_ff @(posedge clk) begin : proc_instr
   if(rst) begin
@@ -150,6 +119,9 @@ always_ff @(posedge clk) begin : proc_instr
   end
 end
 
+// ==========================
+// M2 CYCLE
+// ==========================
 // Decode OPR
 mcs4::opchar_type_t opa_type, opr_type;
 logic instr_mod;
@@ -209,6 +181,9 @@ always @(posedge clk) begin : proc_decode_opr
   end
 end
 
+// ==========================
+// X1 CYCLE
+// ==========================
 always @(posedge clk) begin : proc_decode_opa
    if(icyc == mcs4::X1) begin
     case (opa_type)
@@ -244,7 +219,60 @@ always @(posedge clk) begin : proc_decode_opa
    end
 end
 
+// ==========================
+// X2 CYCLE
+// ==========================
+// Next address selection
+// [DECODER DRIVER & MUX]
+logic [2:0] next_addr_mode;
+logic jump_condition;
+always @(posedge clk) begin
+  if(rst) begin
+    next_pc <= 0;
+    jump_condition <= 0;
+  end else begin
+    if(icyc == mcs4::X2) begin
+      case (instr[0].opr)
+        mcs4::JCN : next_pc <= jump_condition? {pc[2], ird_addr[1:0]} : addr_incr;
+        mcs4::JUN : next_pc <= '0;
+        mcs4::JMS : next_pc <= '0;
+        mcs4::ISZ : next_pc <= '0;
+        default : next_pc <= addr_incr;
+      endcase
+      if(ird_cond[0]) begin
+        jump_condition <= ird_cond[1] && (acc != 0) ||
+                          ird_cond[2] && (carry_lnk == 0) ||
+                          ird_cond[3] && (test == 1)
+      end else begin
+        jump_condition <= ird_cond[1] && (acc == 0) ||
+                          ird_cond[2] && (carry_lnk == 1) ||
+                          ird_cond[3] && (test == 0)
+      end
+    end
+  end
+end
 
+// Adder
+mcs4::char_t adb_buf;
+mcs4::char_t accum;
+logic        carry;
+logic [2:0]  cm_ctl;
+logic [2:0]  accum_ctl;
+always_ff @(posedge clk) begin : proc_accum
+  if(rst) begin
+    accum <= 0;
+  end else begin
+    if(icyc == mcs4::X2) begin
+      case (instr[0].opr)
+        LDM:   accum <= instr[0].opa;
+        ACCUM: {carry, accum} <= accum + adb_buf + carry;
+        LROT:  accum <= accum << 1;
+        RROT:  accum <= accum >> 1;
+        default :   ;
+      endcase
+    end
+  end
+end
 
 // Bus arbitrator
 mcs4::char_t bus;
