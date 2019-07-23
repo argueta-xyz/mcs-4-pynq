@@ -196,3 +196,7 @@ obj_dir/
 !*.xmp
 
 # End of https://www.gitignore.io/api/python,xilinxvivado
+
+###########################################################################
+##	Mac OS X
+.DS_Store
