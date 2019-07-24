@@ -8,7 +8,7 @@ module i4004 (
   input  mcs4::char_t dbus_in,
   output mcs4::char_t dbus_out,
   output logic  sync,
-  output        cm_rom,
+  output logic  cm_rom,
   output mcs4::char_t cm_ram
 );
 
@@ -25,8 +25,8 @@ always @(posedge clk) begin
   end
   clken_1 <= clk_count % 2 == 0;
   clken_2 <= clk_count % 2 == 1;
-  sync <= icyc == mcs4::X3;
 end
+assign sync = icyc == mcs4::X3;
 
 // Index Register
 mcs4::char_t [mcs4::Num_reg_pairs-1:0][1:0] idx_reg;
@@ -67,8 +67,10 @@ end
 // Decode OPR
 mcs4::opchar_type_t opa_type, opr_type;
 logic instr_mod;
+mcs4::char_t opa_buf;
 always @(posedge clk) begin : proc_decode_opr
   if(icyc == mcs4::M2) begin
+    opa_buf <= bus;
     if(!is_instr2) begin
       case (instr[0].opr)
         mcs4::NOP : opa_type <= mcs4::NOP_OP;
@@ -129,12 +131,12 @@ end
 always @(posedge clk) begin : proc_decode_opa
    if(icyc == mcs4::X1) begin
     case (opa_type)
-      mcs4::REG     : ird_reg <= bus;
-      mcs4::REG_PR  : {ird_reg_pair, instr_mod} <= bus;
-      mcs4::DATA_LO : ird_data[0] <= bus;
-      mcs4::ADDR_HI : ird_addr[2] <= bus;
-      mcs4::ADDR_LO : ird_addr[0] <= bus;
-      mcs4::COND    : ird_cond <= bus;
+      mcs4::REG     : ird_reg <= opa_buf;
+      mcs4::REG_PR  : {ird_reg_pair, instr_mod} <= opa_buf;
+      mcs4::DATA_LO : ird_data[0] <= opa_buf;
+      mcs4::ADDR_HI : ird_addr[2] <= opa_buf;
+      mcs4::ADDR_LO : ird_addr[0] <= opa_buf;
+      mcs4::COND    : ird_cond <= opa_buf;
       mcs4::IORAM   : begin
         case (bus)
           default : begin
@@ -143,7 +145,7 @@ always @(posedge clk) begin : proc_decode_opa
         endcase
       end
       mcs4::ACCUM   : begin
-        case (bus)
+        case (opa_buf)
           default : begin
             /* TODO: Implement Accumulate instructions */;
           end
@@ -154,8 +156,8 @@ always @(posedge clk) begin : proc_decode_opa
       end
     endcase
     case (opr_type)
-      mcs4::ADDR_MD : ird_addr[1] <= bus;
-      mcs4::DATA_HI : ird_data[1] <= bus;
+      mcs4::ADDR_MD : ird_addr[1] <= opa_buf;
+      mcs4::DATA_HI : ird_data[1] <= opa_buf;
       default : ;
     endcase
    end
@@ -261,6 +263,7 @@ always_ff @(posedge clk) begin : proc_idxr_wbuf
   end else begin
     case (instr[0].opr)
       // mcs4::ISZ : idxr_wbuf <= TODO
+      mcs4::XCH : idxr_wbuf <= accum;
       default :   ;
     endcase
   end
@@ -287,6 +290,20 @@ always @(posedge clk) begin : proc_idx_reg
   end
 end
 
+// Determine if next icyc series is part 2 of current instr.
+always @(posedge clk) begin : proc_double_instr
+  if(rst) begin
+    double_instr <= 0;
+  end else if(icyc == mcs4::X1) begin
+    double_instr <= ~double_instr &&
+                    (instr[0].opr == mcs4::JCN ||
+                     instr[0].opr == mcs4::FIM ||
+                     instr[0].opr == mcs4::JUN ||
+                     instr[0].opr == mcs4::JMS ||
+                     instr[0].opr == mcs4::ISZ);
+  end
+end
+
 // Adder
 mcs4::char_t adb_buf;
 mcs4::char_t accum;
@@ -299,7 +316,7 @@ always_ff @(posedge clk) begin : proc_accum
   end else begin
     if(icyc == mcs4::X2) begin
       case (instr[0].opr)
-        // LDM:   accum <= instr[0].opa;
+        mcs4::LDM:   accum <= instr[0].opa;
         // ACCUM: {carry, accum} <= accum + adb_buf + carry;
         // LROT:  accum <= accum << 1;
         // RROT:  accum <= accum >> 1;
