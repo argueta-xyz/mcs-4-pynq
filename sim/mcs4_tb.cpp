@@ -2,19 +2,17 @@
 #include "Vmcs4_tb.h"
 #include "testbench.h"
 #include "verilated.h"
-#include "verilated_vcd_c.h"
-
 
 int main(int argc, char **argv, char** env) {
     // Initialize Verilators variables
     Verilated::commandArgs(argc, argv);
-    int timeout = 10000;
+    int timeout = 1000;
     int time = 0;
 
     // Create an instance of our module under test
     TESTBENCH<Vmcs4_tb>* tb = new TESTBENCH<Vmcs4_tb>();
 
-    tb->openTrace("simx.vcd");
+    tb->openTrace("simx.fst");
 
     printf("Starting at time: #%d\n", time);
     tb->reset();

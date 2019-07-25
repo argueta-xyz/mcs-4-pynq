@@ -1,10 +1,10 @@
-#include "verilated_vcd_c.h"
+#include "verilated_fst_c.h"
 
 template<class MODULE> class TESTBENCH {
 public:
 	unsigned long	m_tickcount;
 	MODULE	*m_core;
-	VerilatedVcdC* m_trace;
+	VerilatedFstC* m_trace;
     unsigned long m_time;
 
 	TESTBENCH(void) {
@@ -24,7 +24,7 @@ public:
 
 	virtual void openTrace(const char* filename) {
 		if (!m_trace) {
-		    m_trace = new VerilatedVcdC;
+		    m_trace = new VerilatedFstC;
 		    m_core->trace(m_trace, 99);  // Trace 99 levels of hierarchy
 		    m_trace->open(filename);
 		}
