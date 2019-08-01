@@ -15,7 +15,7 @@ module i4004 (
 // Timing generation
 logic [3:0] clk_count;
 mcs4::instr_cyc_t icyc;
-always @(posedge clk) begin
+always_ff @(posedge clk) begin : clk_count
   if(rst) begin
     clk_count <= 0;
     icyc <= mcs4::A1;
@@ -68,7 +68,7 @@ end
 mcs4::opchar_type_t opa_type, opr_type;
 logic instr_mod;
 mcs4::char_t opa_buf;
-always @(posedge clk) begin : proc_decode_opr
+always_ff @(posedge clk) begin : proc_decode_opr
   if(icyc == mcs4::M2) begin
     opa_buf <= bus;
     if(!is_instr2) begin
@@ -128,7 +128,7 @@ end
 // ==========================
 // X1 CYCLE
 // ==========================
-always @(posedge clk) begin : proc_decode_opa
+always_ff @(posedge clk) begin : proc_decode_opa
    if(icyc == mcs4::X1) begin
     case (opa_type)
       mcs4::REG     : ird_reg <= opa_buf;
@@ -182,7 +182,7 @@ mcs4::addr_t       pc, next_pc;
 logic stack_push, stack_pop;
 logic end_of_page;
 // Stack logic
-always @(posedge clk) begin
+always_ff @(posedge clk) begin : stack_ptr
   if(rst) begin
     stack_ptr <= 0;
   end else if(icyc == mcs4::X2) begin
@@ -209,7 +209,7 @@ mcs4::char_t [2:0] addr_buff;
 mcs4::char_t [2:0] addr_incr;
 logic        [2:0] addr_carry;
 logic              addr_overflow;
-always_ff @(posedge clk) begin
+always_ff @(posedge clk) begin : addr_incr
   if(rst) begin
     addr_buff <= 0;
     addr_incr[0] <= 0;
@@ -229,7 +229,7 @@ assign addr_overflow = addr_carry[2];
 // Next address selection
 // [DECODER DRIVER & MUX]
 logic jump_condition;
-always @(posedge clk) begin
+always_ff @(posedge clk) begin : jump_condition
   if(rst) begin
     next_pc <= 0;
     jump_condition <= 0;
@@ -272,7 +272,7 @@ end
 // ==========================
 // X3 CYCLE
 // ==========================
-always @(posedge clk) begin : proc_idx_reg
+always_ff @(posedge clk) begin : proc_idx_reg
   if(icyc == mcs4::X1) begin
     idxr_rbuf <= ird_reg[idxr_addr.pair];
   end else if(icyc == mcs4::X3) begin
@@ -291,7 +291,7 @@ always @(posedge clk) begin : proc_idx_reg
 end
 
 // Determine if next icyc series is part 2 of current instr.
-always @(posedge clk) begin : proc_double_instr
+always_ff @(posedge clk) begin : proc_double_instr
   if(rst) begin
     double_instr <= 0;
   end else if(icyc == mcs4::X1) begin
@@ -345,7 +345,7 @@ always_comb begin : proc_bus
 end
 
 // Save dbus_in values
-always @(posedge clk) begin
+always_ff @(posedge clk) begin : dbus_in
   case (icyc)
     // mcs4::A1 : dbus_out <= addr_buff[0];
     // mcs4::A2 : dbus_out <= addr_buff[1];
