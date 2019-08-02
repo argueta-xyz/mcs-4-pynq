@@ -1,10 +1,14 @@
-module i4001 (
+module i4001 #(
+  parameter ROM_ID = 4'b0000
+) (
   input  clk,
   input  rst,
+  /* verilator lint_off UNUSED */
   input  clken_1,
   input  clken_2,
   input  sync,
   input  cm_rom,
+  /* verilator lint_off UNUSED */
   input  mcs4::char_t dbus_in,
   output mcs4::char_t dbus_out,
   input  mcs4::char_t io_in,
@@ -14,9 +18,9 @@ module i4001 (
 // Timing regeneration
 logic [3:0] clk_count;
 mcs4::instr_cyc_t icyc;
-always_ff @(posedge clk) begin : clk_count
+always_ff @(posedge clk) begin : proc_clk_count
   if(sync) begin
-    clk_count <= mcs4::A1;
+    clk_count <= 0;
   end else begin
     clk_count <= clk_count + 4'h1;
   end
@@ -37,17 +41,18 @@ always_ff @(posedge clk) begin : proc_in_addr
   end
 end
 
-mcs4::byte_t rom [mcs4::Bytes_per_rom-1:0];
+mcs4::byte_t rom_array [mcs4::Bytes_per_rom-1:0];
 mcs4::char_t [1:0] rdata;
-assign b_sel = icyc == mcs4::M1;
-assign dbus_en = icyc == mcs4::M1 || icyc == mcs4::M2;
+logic char_sel, dbus_en;
+assign char_sel = icyc == mcs4::M1;
+assign dbus_en = (in_addr[2] == ROM_ID) && (icyc == mcs4::M1 || icyc == mcs4::M2);
 always_ff @(posedge clk) begin : proc_dbus_out
-  rdata <= rom[in_addr[1:0]];
+  rdata <= rom_array[in_addr[1:0]];
 end
-assign dbus_out = dbus_en ? rdata[b_sel] : '0;
+assign dbus_out = dbus_en ? rdata[char_sel] : '0;
 
 initial begin
-  $readmemh("../rom_00.hrom", rom);
+  $readmemh("../rom_00.hrom", rom_array);
 end
 
 endmodule

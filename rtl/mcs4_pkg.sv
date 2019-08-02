@@ -17,7 +17,7 @@ package mcs4;
 
   // ROM
   localparam Bytes_per_page   = 256;
-  localparam Bytes_per_rom    = 4096;
+  localparam Bytes_per_rom    = 256;
   localparam Pages_per_rom    = Bytes_per_rom / Bytes_per_page;
   localparam Page_index_width = $clog2(Pages_per_rom);
 
@@ -58,11 +58,6 @@ package mcs4;
   // CPU SPECIFIC
   //*************************
   // Opcodes
-  typedef struct packed {
-    char_t opr;
-    char_t opa;
-  } instr_t;
-
   typedef enum logic [3:0] {
     NOP_OP   = 4'd0,
     REG      = 4'd1,
@@ -78,24 +73,43 @@ package mcs4;
   } opchar_type_t;
 
   // Machine (OPR's)
-  localparam NOP = 4'b0000; // OPR: 0000 - No Operation
-  localparam JCN = 4'b0001; // OPR: 0000 - Jump Conditional
-  localparam FIM = 4'b0010; // OPR: 0000 - Fetch Immediate
-  localparam SRC = 4'b0010; // OPR: 0001 - Send Register Control
-  localparam FIN = 4'b0011; // OPR: 0000 - Fetch Indirect
-  localparam JIN = 4'b0011; // OPR: 0001 - Jump Indirect
-  localparam JUN = 4'b0100; // OPR: 0000 - Jump Uncoditional
-  localparam JMS = 4'b0101; // OPR: 0000 - Jump to Subroutine
-  localparam INC = 4'b0110; // OPR: 0000 - Increment
-  localparam ISZ = 4'b0111; // OPR: 0000 - Increment and Skip
-  localparam ADD = 4'b1000; // OPR: 0000 - Add
-  localparam SUB = 4'b1001; // OPR: 0000 - Subtract
-  localparam LD  = 4'b1010; // OPR: 0000 - Load
-  localparam XCH = 4'b1011; // OPR: 0000 - Exchange
-  localparam BBL = 4'b1100; // OPR: 0000 - Branch Back and Load
-  localparam LDM = 4'b1101; // OPR: 0000 - Load Immediate
-  localparam IORAM_OPR = 4'b1110;
-  localparam ACCUM_OPR = 4'b1111;
+  typedef enum logic [3:0] {
+    NOP       = 4'b0000,
+    JCN       = 4'b0001,
+    FIM_SRC   = 4'b0010,
+    FIN_JIN   = 4'b0011,
+    JUN       = 4'b0100,
+    JMS       = 4'b0101,
+    INC       = 4'b0110,
+    ISZ       = 4'b0111,
+    ADD       = 4'b1000,
+    SUB       = 4'b1001,
+    LD        = 4'b1010,
+    XCH       = 4'b1011,
+    BBL       = 4'b1100,
+    LDM       = 4'b1101,
+    IORAM_GRP = 4'b1110,
+    ACCUM_GRP = 4'b1111
+  } opr_code_t;
+
+  // localparam NOP = 4'b0000; // OPR: 0000 - No Operation
+  // localparam JCN = 4'b0001; // OPR: 0000 - Jump Conditional
+  // localparam FIM = 4'b0010; // OPR: 0000 - Fetch Immediate
+  // localparam SRC = 4'b0010; // OPR: 0001 - Send Register Control
+  // localparam FIN = 4'b0011; // OPR: 0000 - Fetch Indirect
+  // localparam JIN = 4'b0011; // OPR: 0001 - Jump Indirect
+  // localparam JUN = 4'b0100; // OPR: 0000 - Jump Uncoditional
+  // localparam JMS = 4'b0101; // OPR: 0000 - Jump to Subroutine
+  // localparam INC = 4'b0110; // OPR: 0000 - Increment
+  // localparam ISZ = 4'b0111; // OPR: 0000 - Increment and Skip
+  // localparam ADD = 4'b1000; // OPR: 0000 - Add
+  // localparam SUB = 4'b1001; // OPR: 0000 - Subtract
+  // localparam LD  = 4'b1010; // OPR: 0000 - Load
+  // localparam XCH = 4'b1011; // OPR: 0000 - Exchange
+  // localparam BBL = 4'b1100; // OPR: 0000 - Branch Back and Load
+  // localparam LDM = 4'b1101; // OPR: 0000 - Load Immediate
+  // localparam IORAM_OPR = 4'b1110;
+  // localparam ACCUM_OPR = 4'b1111;
 
   // I/O and RAM (OPA's)
   localparam WRM = 4'b0000; // Write Main Memory
@@ -129,6 +143,11 @@ package mcs4;
   localparam DAA = 4'b1011; // Decimal Adjust Accumulator
   localparam KBP = 4'b1100; // Keybord Process
   localparam DCL = 4'b1101; // Designate Command Line
+
+  typedef struct packed {
+    opr_code_t opr;
+    char_t opa;
+  } instr_t;
 
   /* Opcode Masks for:
       NOP, WRM, WMP, WRR, WR0, WR1, WR2, WR3,

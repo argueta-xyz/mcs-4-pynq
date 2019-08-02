@@ -23,9 +23,13 @@ module mcs4_tb(
 `endif // IVERILOG
 
   logic clken_1, clken_2;
-  logic cm_rom, cm_ram;
+  /* verilator lint_off UNUSED */
+  logic cm_rom;
+  mcs4::char_t cm_ram;
+  /* verilator lint_on UNUSED */
   logic sync;
   mcs4::char_t d_cpu, d_rom;
+  mcs4::char_t io_in, io_out;
   i4001 rom (
     .clk(clk),
     .rst(rst),
@@ -35,8 +39,8 @@ module mcs4_tb(
     .cm_rom(cm_rom),
     .dbus_in(d_cpu),
     .dbus_out(d_rom),
-    .io_in('0),
-    .io_out()
+    .io_in(io_in),
+    .io_out(io_out)
   );
 
   i4004 cpu (
@@ -48,9 +52,12 @@ module mcs4_tb(
     .dbus_in(d_rom),
     .dbus_out(d_cpu),
     .sync(sync),
-    .cm_rom(cm_rom)
+    .cm_rom(cm_rom),
+    .cm_ram (cm_ram)
   );
 
+  assign io_out = 0;
+  assign io_in = 0;
   // TODO: Create ROM with this program:
   // 0000: START:
   // 0000:        LDM $05         D5
