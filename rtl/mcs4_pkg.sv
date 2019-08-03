@@ -59,7 +59,7 @@ package mcs4;
   //*************************
   // Opcodes
   typedef enum logic [3:0] {
-    NOP_OP   = 4'd0,
+    NO_OPA   = 4'd0,
     REG      = 4'd1,
     REG_PR   = 4'd2,
     DATA_HI  = 4'd3,

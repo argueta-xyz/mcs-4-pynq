@@ -48,15 +48,21 @@ mcs4::rpaddr_t     ird_reg_pair_addr;
 mcs4::char_t [1:0] ird_data;
 mcs4::char_t [2:0] ird_addr;
 mcs4::char_t       ird_cond;
+mcs4::opr_code_t   opr_code;
+
 
 always_ff @(posedge clk) begin : proc_instr
   if(rst) begin
     instr[0].opr <= mcs4::NOP;
+    opr_code     <= mcs4::NOP;
   end else begin
     if(icyc == mcs4::M1) begin
       instr[double_instr].opr <= bus;
-    end else if(icyc == mcs4::M1) begin
+      opr_code <= double_instr ? opr_code : bus;
+    end else if(icyc == mcs4::M2) begin
       instr[double_instr].opa <= bus;
+      ioram_opa_code <= double_instr ? ioram_opa_code : bus;
+      accum_opa_code <= double_instr ? accum_opa_code : bus;
     end
   end
 end
@@ -66,7 +72,6 @@ end
 // ==========================
 // Decode OPR
 mcs4::opchar_type_t opa_type, opr_type;
-mcs4::opr_code_t opr_code;
 mcs4::ioram_opa_t ioram_opa_code;
 mcs4::accum_opa_t accum_opa_code;
 logic instr_mod;
@@ -75,12 +80,9 @@ always_ff @(posedge clk) begin : proc_decode_opr
   if(icyc == mcs4::M2) begin
     opa_buf <= bus;
     if(!is_instr2) begin
-      opr_code <= instr[0].opr;
-      ioram_opa_code <= instr[0].opa;
-      accum_opa_code <= instr[0].opa;
-      opr_type <= mcs4::NOP_OP;
-      case (instr[0].opr)
-        mcs4::NOP       : opa_type <= mcs4::NOP_OP;
+      opr_type <= mcs4::NO_OPA;
+      case (opr_code)
+        mcs4::NOP       : opa_type <= mcs4::NO_OPA;
         mcs4::JCN       : opa_type <= mcs4::COND;
         mcs4::FIM_SRC   : opa_type <= mcs4::REG_PR;
         mcs4::FIN_JIN   : opa_type <= mcs4::REG_PR;
@@ -96,11 +98,11 @@ always_ff @(posedge clk) begin : proc_decode_opr
         mcs4::LDM       : opa_type <= mcs4::DATA_LO;
         mcs4::IORAM_GRP : opa_type <= mcs4::IORAM;
         mcs4::ACCUM_GRP : opa_type <= mcs4::ACCUM;
-        default         : opa_type <= mcs4::NOP_OP;
+        default         : opa_type <= mcs4::NO_OPA;
       endcase
     end else begin
       // Decode DWords based on original OPR
-      case (instr[0].opr)
+      case (opr_code)
         mcs4::JCN : begin
           opr_type <= mcs4::ADDR_MD;
           opa_type <= mcs4::ADDR_LO;
@@ -122,8 +124,8 @@ always_ff @(posedge clk) begin : proc_decode_opr
           opa_type <= mcs4::ADDR_LO;
         end
         default : begin
-          opr_type <= mcs4::NOP_OP;
-          opa_type <= mcs4::NOP_OP;
+          opr_type <= mcs4::NO_OPA;
+          opa_type <= mcs4::NO_OPA;
         end
       endcase
     end
@@ -171,10 +173,10 @@ end
 // Determine addr & control for Index Register R/W
 assign pair_mode = opa_type == mcs4::REG_PR;
 assign idxr_addr = pair_mode? {ird_reg_pair_addr, 1'b0} : ird_reg_addr;
-assign idxr_wen  = (instr[0].opr == mcs4::FIN_JIN ||
-                    instr[0].opr == mcs4::INC ||
-                    instr[0].opr == mcs4::ISZ ||
-                    instr[0].opr == mcs4::XCH);
+assign idxr_wen  = (opr_code == mcs4::FIN_JIN ||
+                    opr_code == mcs4::INC ||
+                    opr_code == mcs4::ISZ ||
+                    opr_code == mcs4::XCH);
 
 always_ff @(posedge clk) begin : idx_reg_read
   if(icyc == mcs4::X1) begin
@@ -333,8 +335,24 @@ always_ff @(posedge clk) begin : proc_accum
         mcs4::XCH : accum <= idxr_rbuf[idxr_addr.single];
         mcs4::BBL : accum <= instr[0].opa;
         mcs4::LDM : accum <= instr[0].opa;
+        mcs4::IORAM_GRP : begin
+          // TODO: Implement IORAM Group
+        end
         mcs4::ACCUM_GRP : begin
           case (accum_opa_code)
+            mcs4::CLB : {carry, accum} <= 0;
+            mcs4::CLC : carry <= 0;
+            mcs4::IAC : {carry, accum} <= accum + 1;
+            mcs4::CMC : carry <= ~carry;
+            mcs4::CMA : accum <= ~accum;
+            mcs4::RAL : {carry, accum} <= {accum, 1'b0};
+            mcs4::RAR : {carry, accum} <= {1'b0, carry, accum[3:1]};
+            mcs4::TCC : {carry, accum} <= {1'b0, 3'b000, carry};
+            mcs4::DAC : {carry, accum} <= accum - 1;
+            mcs4::STC : carry <= 1'b1;
+            mcs4::DAA : ; // TODO: Implement Decimal adjust
+            mcs4::KBP : ; // TODO: Implement Keyboard Process
+            mcs4::DCL : ; // TODO: Implement Designate command line
             default : /* default */;
           endcase
         end
