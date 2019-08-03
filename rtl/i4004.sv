@@ -333,7 +333,7 @@ always_ff @(posedge clk) begin : proc_accum
         mcs4::XCH : accum <= idxr_rbuf[idxr_addr.single];
         mcs4::BBL : accum <= instr[0].opa;
         mcs4::LDM : accum <= instr[0].opa;
-        mcs4::ACCUM_GRP : begin :
+        mcs4::ACCUM_GRP : begin
           case (accum_opa_code)
             default : /* default */;
           endcase
