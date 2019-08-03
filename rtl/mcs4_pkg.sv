@@ -112,37 +112,72 @@ package mcs4;
   // localparam ACCUM_OPR = 4'b1111;
 
   // I/O and RAM (OPA's)
-  localparam WRM = 4'b0000; // Write Main Memory
-  localparam WMP = 4'b0001; // Write RAM Port
-  localparam WRR = 4'b0010; // Write ROM Port
-  localparam WR0 = 4'b0100; // Write Status Char 0
-  localparam WR1 = 4'b0101; // Write Status Char 1
-  localparam WR2 = 4'b0110; // Write Status Char 2
-  localparam WR3 = 4'b0111; // Write Status Char 3
-  localparam SBM = 4'b1000; // Subtract Main Memory
-  localparam RDM = 4'b1001; // Read Main Memory
-  localparam RDR = 4'b1010; // Read ROM Port
-  localparam ADM = 4'b1011; // Add Main Memory
-  localparam RD0 = 4'b1100; // Read Status Char 0
-  localparam RD1 = 4'b1101; // Read Status Char 1
-  localparam RD2 = 4'b1110; // Read Status Char 2
-  localparam RD3 = 4'b1111; // Read Status Char 3
+  typedef enum logic [3:0] {
+    WRM = 4'b0000, // Write Main Memory
+    WMP = 4'b0001, // Write RAM Port
+    WRR = 4'b0010, // Write ROM Port
+    WR0 = 4'b0100, // Write Status Char 0
+    WR1 = 4'b0101, // Write Status Char 1
+    WR2 = 4'b0110, // Write Status Char 2
+    WR3 = 4'b0111, // Write Status Char 3
+    SBM = 4'b1000, // Subtract Main Memory
+    RDM = 4'b1001, // Read Main Memory
+    RDR = 4'b1010, // Read ROM Port
+    ADM = 4'b1011, // Add Main Memory
+    RD0 = 4'b1100, // Read Status Char 0
+    RD1 = 4'b1101, // Read Status Char 1
+    RD2 = 4'b1110, // Read Status Char 2
+    RD3 = 4'b1111  // Read Status Char 3
+  } ioram_opa_t;
+
+  // localparam WRM = 4'b0000; // Write Main Memory
+  // localparam WMP = 4'b0001; // Write RAM Port
+  // localparam WRR = 4'b0010; // Write ROM Port
+  // localparam WR0 = 4'b0100; // Write Status Char 0
+  // localparam WR1 = 4'b0101; // Write Status Char 1
+  // localparam WR2 = 4'b0110; // Write Status Char 2
+  // localparam WR3 = 4'b0111; // Write Status Char 3
+  // localparam SBM = 4'b1000; // Subtract Main Memory
+  // localparam RDM = 4'b1001; // Read Main Memory
+  // localparam RDR = 4'b1010; // Read ROM Port
+  // localparam ADM = 4'b1011; // Add Main Memory
+  // localparam RD0 = 4'b1100; // Read Status Char 0
+  // localparam RD1 = 4'b1101; // Read Status Char 1
+  // localparam RD2 = 4'b1110; // Read Status Char 2
+  // localparam RD3 = 4'b1111; // Read Status Char 3
 
   // Accumulator (OPA's)
-  localparam CLB = 4'b0000; // Clear Both
-  localparam CLC = 4'b0001; // Clear Carry
-  localparam IAC = 4'b0010; // Increment Accumulator
-  localparam CMC = 4'b0011; // Complement Carry
-  localparam CMA = 4'b0100; // Complement
-  localparam RAL = 4'b0101; // Rotate Left
-  localparam RAR = 4'b0110; // Rotate Right
-  localparam TCC = 4'b0111; // Transfer Carry and Clear
-  localparam DAC = 4'b1000; // Decrement Accumulator
-  localparam TCS = 4'b1001; // Transfer Carry Subtract
-  localparam STC = 4'b1010; // Set Carry
-  localparam DAA = 4'b1011; // Decimal Adjust Accumulator
-  localparam KBP = 4'b1100; // Keybord Process
-  localparam DCL = 4'b1101; // Designate Command Line
+  typedef enum logic [3:0] {
+    CLB = 4'b0000, // Clear Both
+    CLC = 4'b0001, // Clear Carry
+    IAC = 4'b0010, // Increment Accumulator
+    CMC = 4'b0011, // Complement Carry
+    CMA = 4'b0100, // Complement
+    RAL = 4'b0101, // Rotate Left
+    RAR = 4'b0110, // Rotate Right
+    TCC = 4'b0111, // Transfer Carry and Clear
+    DAC = 4'b1000, // Decrement Accumulator
+    TCS = 4'b1001, // Transfer Carry Subtract
+    STC = 4'b1010, // Set Carry
+    DAA = 4'b1011, // Decimal Adjust Accumulator
+    KBP = 4'b1100, // Keybord Process
+    DCL = 4'b1101  // Designate Command Line
+  } accum_opa_t;
+
+  // localparam CLB = 4'b0000; // Clear Both
+  // localparam CLC = 4'b0001; // Clear Carry
+  // localparam IAC = 4'b0010; // Increment Accumulator
+  // localparam CMC = 4'b0011; // Complement Carry
+  // localparam CMA = 4'b0100; // Complement
+  // localparam RAL = 4'b0101; // Rotate Left
+  // localparam RAR = 4'b0110; // Rotate Right
+  // localparam TCC = 4'b0111; // Transfer Carry and Clear
+  // localparam DAC = 4'b1000; // Decrement Accumulator
+  // localparam TCS = 4'b1001; // Transfer Carry Subtract
+  // localparam STC = 4'b1010; // Set Carry
+  // localparam DAA = 4'b1011; // Decimal Adjust Accumulator
+  // localparam KBP = 4'b1100; // Keybord Process
+  // localparam DCL = 4'b1101; // Designate Command Line
 
   typedef struct packed {
     opr_code_t opr;

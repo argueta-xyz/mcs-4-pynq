@@ -67,6 +67,8 @@ end
 // Decode OPR
 mcs4::opchar_type_t opa_type, opr_type;
 mcs4::opr_code_t opr_code;
+mcs4::ioram_opa_t ioram_opa_code;
+mcs4::accum_opa_t accum_opa_code;
 logic instr_mod;
 mcs4::char_t opa_buf;
 always_ff @(posedge clk) begin : proc_decode_opr
@@ -74,27 +76,27 @@ always_ff @(posedge clk) begin : proc_decode_opr
     opa_buf <= bus;
     if(!is_instr2) begin
       opr_code <= instr[0].opr;
+      ioram_opa_code <= instr[0].opa;
+      accum_opa_code <= instr[0].opa;
       opr_type <= mcs4::NOP_OP;
       case (instr[0].opr)
-        mcs4::NOP : opa_type <= mcs4::NOP_OP;
-        mcs4::JCN : opa_type <= mcs4::COND;
-        mcs4::FIM_SRC : opa_type <= mcs4::REG_PR;
-        // mcs4::SRC
-        mcs4::FIN_JIN : opa_type <= mcs4::REG_PR;
-        // mcs4::JIN
-        mcs4::JUN : opa_type <= mcs4::ADDR_HI;
-        mcs4::JMS : opa_type <= mcs4::ADDR_HI;
-        mcs4::INC : opa_type <= mcs4::REG;
-        mcs4::ISZ : opa_type <= mcs4::REG;
-        mcs4::ADD : opa_type <= mcs4::REG;
-        mcs4::SUB : opa_type <= mcs4::REG;
-        mcs4::LD  : opa_type <= mcs4::REG;
-        mcs4::XCH : opa_type <= mcs4::REG;
-        mcs4::BBL : opa_type <= mcs4::DATA_LO;
-        mcs4::LDM : opa_type <= mcs4::DATA_LO;
+        mcs4::NOP       : opa_type <= mcs4::NOP_OP;
+        mcs4::JCN       : opa_type <= mcs4::COND;
+        mcs4::FIM_SRC   : opa_type <= mcs4::REG_PR;
+        mcs4::FIN_JIN   : opa_type <= mcs4::REG_PR;
+        mcs4::JUN       : opa_type <= mcs4::ADDR_HI;
+        mcs4::JMS       : opa_type <= mcs4::ADDR_HI;
+        mcs4::INC       : opa_type <= mcs4::REG;
+        mcs4::ISZ       : opa_type <= mcs4::REG;
+        mcs4::ADD       : opa_type <= mcs4::REG;
+        mcs4::SUB       : opa_type <= mcs4::REG;
+        mcs4::LD        : opa_type <= mcs4::REG;
+        mcs4::XCH       : opa_type <= mcs4::REG;
+        mcs4::BBL       : opa_type <= mcs4::DATA_LO;
+        mcs4::LDM       : opa_type <= mcs4::DATA_LO;
         mcs4::IORAM_GRP : opa_type <= mcs4::IORAM;
         mcs4::ACCUM_GRP : opa_type <= mcs4::ACCUM;
-        default : opa_type <= mcs4::NOP_OP;
+        default         : opa_type <= mcs4::NOP_OP;
       endcase
     end else begin
       // Decode DWords based on original OPR
@@ -195,11 +197,11 @@ always_ff @(posedge clk) begin : proc_stack_ptr
   if(rst) begin
     stack_ptr <= 0;
   end else if(icyc == mcs4::X2) begin
-    if(instr[0].opr == mcs4::JMS) begin
+    if(opr_code == mcs4::JMS) begin
       // Stack push
       stack_ptr <= stack_ptr + 1;
       stack[stack_ptr] <= next_pc;
-    end else if(instr[0].opr == mcs4::BBL) begin
+    end else if(opr_code == mcs4::BBL) begin
       // Stack pop
       stack_ptr <= stack_ptr - 1;
     end else begin
@@ -253,7 +255,7 @@ always_ff @(posedge clk) begin : proc_jump_condition
                           ird_cond[2] && (carry == 1) ||
                           ird_cond[3] && (test == 0);
       end
-      case (instr[0].opr)
+      case (opr_code)
         mcs4::JCN : next_pc <=  jump_condition? {(end_of_page?
                                                     addr_incr[2] :
                                                     pc[mcs4::Addr_width-1-:4]), ird_addr[1:0]} :
@@ -271,7 +273,7 @@ always_ff @(posedge clk) begin : proc_idxr_wbuf
   if(rst) begin
     idxr_wbuf <= 0;
   end else begin
-    case (instr[0].opr)
+    case (opr_code)
       mcs4::INC : idxr_wbuf <= idxr_rbuf + 1;
       mcs4::ISZ : idxr_wbuf <= idxr_wbuf + 1;
       mcs4::XCH : idxr_wbuf <= {accum, accum};
@@ -305,11 +307,11 @@ always_ff @(posedge clk) begin : proc_double_instr
     double_instr <= 0;
   end else if(icyc == mcs4::X1) begin
     double_instr <= ~double_instr &&
-                    (instr[0].opr == mcs4::JCN ||
-                     instr[0].opr == mcs4::FIM_SRC ||
-                     instr[0].opr == mcs4::JUN ||
-                     instr[0].opr == mcs4::JMS ||
-                     instr[0].opr == mcs4::ISZ);
+                    (opr_code == mcs4::JCN ||
+                     opr_code == mcs4::FIM_SRC ||
+                     opr_code == mcs4::JUN ||
+                     opr_code == mcs4::JMS ||
+                     opr_code == mcs4::ISZ);
   end
 end
 
@@ -324,15 +326,18 @@ always_ff @(posedge clk) begin : proc_accum
     accum <= 0;
   end else begin
     if(icyc == mcs4::X2) begin
-      case (instr[0].opr)
+      case (opr_code)
         mcs4::ADD : {carry, accum} <= accum + idxr_rbuf[idxr_addr.single];
         mcs4::SUB : accum <= accum - idxr_rbuf[idxr_addr.single];
         mcs4::LD  : accum <= idxr_rbuf[idxr_addr.single];
         mcs4::XCH : accum <= idxr_rbuf[idxr_addr.single];
+        mcs4::BBL : accum <= instr[0].opa;
         mcs4::LDM : accum <= instr[0].opa;
-        // ACCUM: {carry, accum} <= accum + adb_buf + carry;
-        // LROT:  accum <= accum << 1;
-        // RROT:  accum <= accum >> 1;
+        mcs4::ACCUM_GRP : begin :
+          case (accum_opa_code)
+            default : /* default */;
+          endcase
+        end
         default : /**/  ;
       endcase
     end
