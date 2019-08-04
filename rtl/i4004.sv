@@ -350,9 +350,18 @@ always_ff @(posedge clk) begin : proc_accum
             mcs4::TCC : {carry, accum} <= {1'b0, 3'b000, carry};
             mcs4::DAC : {carry, accum} <= accum - 1;
             mcs4::STC : carry <= 1'b1;
-            mcs4::DAA : ; // TODO: Implement Decimal adjust
-            mcs4::KBP : ; // TODO: Implement Keyboard Process
-            mcs4::DCL : ; // TODO: Implement Designate command line
+            mcs4::DAA : {carry, accum} <= accum + (carry ? 5'd6 : 5'd0);
+            mcs4::KBP : begin
+              case (accum)
+                4'b0000 : accum <= 4'b0000;
+                4'b0001 : accum <= 4'b0001;
+                4'b0010 : accum <= 4'b0010;
+                4'b0100 : accum <= 4'b0011;
+                4'b1000 : accum <= 4'b0100;
+                default : accum <= 4'b1111;
+              endcase
+            end
+            mcs4::DCL : cm_ram <= {accum[2:0], ~|accum[2:0]};
             default : /* default */;
           endcase
         end
@@ -414,7 +423,6 @@ end
 
 // Lint unused
 assign dbus_out = bus;
-assign cm_ram = '0;
 assign cm_rom = '0;
 assign ram_ctl = '0;
 assign io_read = '0;

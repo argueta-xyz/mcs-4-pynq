@@ -152,7 +152,7 @@ package mcs4;
     CLC = 4'b0001, // Clear Carry
     IAC = 4'b0010, // Increment Accumulator
     CMC = 4'b0011, // Complement Carry
-    CMA = 4'b0100, // Complement
+    CMA = 4'b0100, // Complement Accumulator
     RAL = 4'b0101, // Rotate Left
     RAR = 4'b0110, // Rotate Right
     TCC = 4'b0111, // Transfer Carry and Clear
