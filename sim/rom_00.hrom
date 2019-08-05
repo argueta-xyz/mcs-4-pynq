@@ -69,9 +69,14 @@ F5 // RAL
 FD // DCL
 F5 // RAL
 FD // DCL
+F0 // CLB
+FD // DCL
 // Keyboard process
 FC // KBP
 FC // KBP
 // Decimal adjust
 FA // STC
 FB // DAA
+// Write to memory
+21 // SRC 0
+E0 // WRM

@@ -49,8 +49,9 @@ mcs4::char_t [1:0] ird_data;
 mcs4::char_t [2:0] ird_addr;
 mcs4::char_t       ird_cond;
 mcs4::opr_code_t   opr_code;
+logic is_jin_or_src;
 
-
+assign is_jin_or_src = instr[0].opa[0];
 always_ff @(posedge clk) begin : proc_instr
   if(rst) begin
     instr[0].opr <= mcs4::NOP;
@@ -168,6 +169,35 @@ always_ff @(posedge clk) begin : proc_decode_opa
       default : ;
     endcase
    end
+end
+
+always_ff @(posedge clk) begin : proc_ram_ctl
+  if(rst) begin
+    ram_ctl <= 0;
+  end else if(icyc == mcs4::X1) begin
+    if(opr_code == mcs4::FIM_SRC && is_jin_or_src) begin
+      ram_ctl <= idx_reg[idxr_addr.pair];
+    end else begin
+      case (ioram_opa_code)
+        mcs4::WRM : ram_ctl[0] <= accum;
+        mcs4::WMP : ram_ctl[0] <= accum;
+        mcs4::WRR : ram_ctl[0] <= accum;
+        mcs4::WR0 : ram_ctl[0] <= accum;
+        mcs4::WR1 : ram_ctl[0] <= accum;
+        mcs4::WR2 : ram_ctl[0] <= accum;
+        mcs4::WR3 : ram_ctl[0] <= accum;
+        mcs4::SBM : ;
+        mcs4::RDM : ;
+        mcs4::RDR : ;
+        mcs4::ADM : ;
+        mcs4::RD0 : ;
+        mcs4::RD1 : ;
+        mcs4::RD2 : ;
+        mcs4::RD3 : ;
+        default : /* default */;
+      endcase
+    end
+  end
 end
 
 // Determine addr & control for Index Register R/W
@@ -310,7 +340,7 @@ always_ff @(posedge clk) begin : proc_double_instr
   end else if(icyc == mcs4::X1) begin
     double_instr <= ~double_instr &&
                     (opr_code == mcs4::JCN ||
-                     opr_code == mcs4::FIM_SRC ||
+                     (opr_code == mcs4::FIM_SRC && !is_jin_or_src) ||
                      opr_code == mcs4::JUN ||
                      opr_code == mcs4::JMS ||
                      opr_code == mcs4::ISZ);
@@ -323,6 +353,7 @@ mcs4::char_t accum;
 logic        carry;
 logic [2:0]  cm_ctl;
 logic [2:0]  accum_ctl;
+mcs4::char_t cm_ram_buf;
 always_ff @(posedge clk) begin : proc_accum
   if(rst) begin
     accum <= 0;
@@ -336,7 +367,6 @@ always_ff @(posedge clk) begin : proc_accum
         mcs4::BBL : accum <= instr[0].opa;
         mcs4::LDM : accum <= instr[0].opa;
         mcs4::IORAM_GRP : begin
-          // TODO: Implement IORAM Group
         end
         mcs4::ACCUM_GRP : begin
           case (accum_opa_code)
@@ -361,7 +391,7 @@ always_ff @(posedge clk) begin : proc_accum
                 default : accum <= 4'b1111;
               endcase
             end
-            mcs4::DCL : cm_ram <= {accum[2:0], ~|accum[2:0]};
+            mcs4::DCL : cm_ram_buf <= {accum[2:0], ~|accum[2:0]};
             default : /* default */;
           endcase
         end
@@ -373,21 +403,38 @@ end
 
 // Bus arbitrator
 mcs4::char_t bus;
-mcs4::char_t ram_ctl;
+mcs4::char_t [1:0] ram_ctl;
 logic io_read;
+mcs4::char_t io_read_data;
+always_ff @(posedge clk) begin : proc_io_read
+  if(rst) begin
+    io_read <= 0;
+  end else begin
+    io_read <= (opr_code == mcs4::FIM_SRC && is_jin_or_src) ||
+               (opr_code == mcs4::IORAM_GRP && (
+                  ioram_opa_code == mcs4::WRM ||
+                  ioram_opa_code == mcs4::WMP ||
+                  ioram_opa_code == mcs4::WRR ||
+                  ioram_opa_code == mcs4::WR0 ||
+                  ioram_opa_code == mcs4::WR1 ||
+                  ioram_opa_code == mcs4::WR2 ||
+                  ioram_opa_code == mcs4::WR3 ));
+  end
+end
 always_comb begin : bus_arbitration
   case (icyc)
     mcs4::A1 : bus = addr_buff[0];
     mcs4::A2 : bus = addr_buff[1];
     mcs4::A3 : bus = addr_buff[2];
-    mcs4::M1 : bus = dbus_in; //instr.opr;
-    mcs4::M2 : bus = dbus_in; //instr.opa;
+    mcs4::M1 : bus = dbus_in;
+    mcs4::M2 : bus = dbus_in;
     mcs4::X1 : bus = '0;
-    mcs4::X2 : bus = io_read? ram_ctl : dbus_in;
-    mcs4::X3 : bus = ram_ctl;
+    mcs4::X2 : bus = io_read? ram_ctl[0] : dbus_in;
+    mcs4::X3 : bus = is_jin_or_src ? ram_ctl[1] : 0;
     default  : bus = addr_buff[0];
   endcase // icyc
 end
+assign dbus_out = bus;
 
 // Save dbus_in values
 always_ff @(posedge clk) begin : proc_dbus_in
@@ -398,7 +445,7 @@ always_ff @(posedge clk) begin : proc_dbus_in
     mcs4::M1 : instr[is_instr2].opr <= dbus_in;
     mcs4::M2 : instr[is_instr2].opa <= dbus_in;
     // mcs4::X1 : bus <= '0;
-    // mcs4::X2 : bus <= io_read? ram_ctl : dbus_in;
+    mcs4::X2 : io_read_data <= dbus_in;
     // mcs4::X3 : bus <= ram_ctl;
     default : ;
   endcase // icyc
@@ -420,12 +467,31 @@ always_ff @(posedge clk) begin : proc_dbus_in
   // end
 end
 
+always_ff @(posedge clk) begin : proc_cm_ram
+  if(rst) begin
+    cm_ram <= 0;
+    cm_rom <= 0;
+  end else begin
+    if(icyc == mcs4::A2) begin
+      cm_ram <= opr_code == mcs4::IORAM_GRP ? cm_ram_buf : 0;
+      cm_rom <= 1;
+    end else if(icyc == mcs4::M1 && bus == mcs4::IORAM_GRP) begin
+      // Assert for IO operation
+      cm_ram <= cm_ram_buf;
+      cm_rom <= 1;
+    end else if(icyc == mcs4::X1 && opr_code == mcs4::FIM_SRC && is_jin_or_src) begin
+      // Assert for SRC
+      cm_ram <= cm_ram_buf;
+      cm_rom <= 1;
+    end else begin
+      cm_ram <= 0;
+      cm_rom <= 0;
+    end
+  end
+end
 
 // Lint unused
-assign dbus_out = bus;
 assign cm_rom = '0;
-assign ram_ctl = '0;
-assign io_read = '0;
 assign is_instr2 = '0; // TODO: IMPLEMENT WHEN DECODING INSTR1
 
 // Index Register

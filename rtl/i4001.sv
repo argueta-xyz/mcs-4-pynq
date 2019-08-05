@@ -28,6 +28,7 @@ end
 assign icyc = mcs4::instr_cyc_t'(clk_count);
 
 mcs4::char_t [2:0] in_addr;
+mcs4::char_t chip_select;
 always_ff @(posedge clk) begin : proc_in_addr
   if(rst) begin
     in_addr <= 0;
@@ -36,6 +37,7 @@ always_ff @(posedge clk) begin : proc_in_addr
       mcs4::A1 : in_addr[0] <= dbus_in;
       mcs4::A2 : in_addr[1] <= dbus_in;
       mcs4::A3 : in_addr[2] <= dbus_in;
+      mcs4::X2 : chip_select <= dbus_in;
       default : /* nothing */;
     endcase
   end
@@ -45,7 +47,7 @@ mcs4::byte_t rom_array [mcs4::Bytes_per_rom-1:0];
 mcs4::char_t [1:0] rdata;
 logic char_sel, dbus_en;
 assign char_sel = icyc == mcs4::M1;
-assign dbus_en = (in_addr[2] == ROM_ID) && (icyc == mcs4::M1 || icyc == mcs4::M2);
+assign dbus_en = (chip_select == ROM_ID) && (icyc == mcs4::M1 || icyc == mcs4::M2);
 always_ff @(posedge clk) begin : proc_dbus_out
   rdata <= rom_array[in_addr[1:0]];
 end
