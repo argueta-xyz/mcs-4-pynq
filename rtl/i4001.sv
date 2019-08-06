@@ -47,7 +47,8 @@ mcs4::byte_t rom_array [mcs4::Bytes_per_rom-1:0];
 mcs4::char_t [1:0] rdata;
 logic char_sel, dbus_en;
 assign char_sel = icyc == mcs4::M1;
-assign dbus_en = (chip_select == ROM_ID) && (icyc == mcs4::M1 || icyc == mcs4::M2);
+assign dbus_en = icyc == mcs4::M1 || icyc == mcs4::M2;
+                 // (chip_select == ROM_ID && icyc == mcs4::X2);
 always_ff @(posedge clk) begin : proc_dbus_out
   rdata <= rom_array[in_addr[1:0]];
 end

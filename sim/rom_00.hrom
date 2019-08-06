@@ -1,4 +1,5 @@
 // Load Immediates into ACCUM and Exchange into regs
+00 // NOP
 DF // LDM F
 B0 // XCH 0
 DE // LDM E
@@ -80,3 +81,4 @@ FB // DAA
 // Write to memory
 21 // SRC 0
 E0 // WRM
+E9 // RDM

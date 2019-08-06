@@ -67,7 +67,7 @@ mcs4::char_t [mcs4::Ram_regs_per_chip-1:0]
 mcs4::char_t rdata;
 
 logic dbus_en;
-assign dbus_en = (chip_index == RAM_ID) && (icyc == mcs4::X2);
+assign dbus_en = cm_ram && (chip_index == RAM_ID) && (icyc == mcs4::X2);
 always_ff @(posedge clk) begin : proc_mem
   if(icyc == mcs4::X2 && opa_received) begin
     case (opa)

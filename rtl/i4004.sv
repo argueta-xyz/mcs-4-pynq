@@ -58,12 +58,12 @@ always_ff @(posedge clk) begin : proc_instr
     opr_code     <= mcs4::NOP;
   end else begin
     if(icyc == mcs4::M1) begin
-      instr[double_instr].opr <= bus;
-      opr_code <= double_instr ? opr_code : bus;
+      instr[double_instr].opr <= dbus_in;
+      opr_code <= double_instr ? opr_code : dbus_in;
     end else if(icyc == mcs4::M2) begin
-      instr[double_instr].opa <= bus;
-      ioram_opa_code <= double_instr ? ioram_opa_code : bus;
-      accum_opa_code <= double_instr ? accum_opa_code : bus;
+      instr[double_instr].opa <= dbus_in;
+      ioram_opa_code <= double_instr ? ioram_opa_code : dbus_in;
+      accum_opa_code <= double_instr ? accum_opa_code : dbus_in;
     end
   end
 end
@@ -79,7 +79,7 @@ logic instr_mod;
 mcs4::char_t opa_buf;
 always_ff @(posedge clk) begin : proc_decode_opr
   if(icyc == mcs4::M2) begin
-    opa_buf <= bus;
+    opa_buf <= dbus_in;
     if(!is_instr2) begin
       opr_type <= mcs4::NO_OPA;
       case (opr_code)
@@ -145,23 +145,7 @@ always_ff @(posedge clk) begin : proc_decode_opa
       mcs4::ADDR_HI : ird_addr[2] <= opa_buf;
       mcs4::ADDR_LO : ird_addr[0] <= opa_buf;
       mcs4::COND    : ird_cond <= opa_buf;
-      mcs4::IORAM   : begin
-        case (bus)
-          default : begin
-            /* TODO: Implement IO/RAM instructions */;
-          end
-        endcase
-      end
-      mcs4::ACCUM   : begin
-        case (opa_buf)
-          default : begin
-            /* TODO: Implement Accumulate instructions */;
-          end
-        endcase
-      end
-      default : begin
-        /* default */;
-      end
+      default : ;
     endcase
     case (opr_type)
       mcs4::ADDR_MD : ird_addr[1] <= opa_buf;
@@ -194,7 +178,7 @@ always_ff @(posedge clk) begin : proc_ram_ctl
         mcs4::RD1 : ;
         mcs4::RD2 : ;
         mcs4::RD3 : ;
-        default : /* default */;
+        default : ;
       endcase
     end
   end
@@ -426,10 +410,10 @@ always_comb begin : bus_arbitration
     mcs4::A1 : bus = addr_buff[0];
     mcs4::A2 : bus = addr_buff[1];
     mcs4::A3 : bus = addr_buff[2];
-    mcs4::M1 : bus = dbus_in;
-    mcs4::M2 : bus = dbus_in;
+    mcs4::M1 : bus = '0;
+    mcs4::M2 : bus = '0;
     mcs4::X1 : bus = '0;
-    mcs4::X2 : bus = io_read? ram_ctl[0] : dbus_in;
+    mcs4::X2 : bus = io_read? ram_ctl[0] : '0;
     mcs4::X3 : bus = is_jin_or_src ? ram_ctl[1] : 0;
     default  : bus = addr_buff[0];
   endcase // icyc
@@ -475,7 +459,7 @@ always_ff @(posedge clk) begin : proc_cm_ram
     if(icyc == mcs4::A2) begin
       cm_ram <= opr_code == mcs4::IORAM_GRP ? cm_ram_buf : 0;
       cm_rom <= 1;
-    end else if(icyc == mcs4::M1 && bus == mcs4::IORAM_GRP) begin
+    end else if(icyc == mcs4::M1 && dbus_in == mcs4::IORAM_GRP) begin
       // Assert for IO operation
       cm_ram <= cm_ram_buf;
       cm_rom <= 1;

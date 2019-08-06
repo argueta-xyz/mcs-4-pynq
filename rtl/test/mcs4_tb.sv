@@ -29,7 +29,10 @@ module mcs4_tb(
   /* verilator lint_on UNUSED */
   logic sync;
   mcs4::char_t d_cpu, d_rom, d_ram;
+  mcs4::char_t d_bus;
   mcs4::char_t io_in, io_out, io_ram_out;
+
+  assign d_bus = d_cpu | d_rom | d_ram;
   i4001 rom (
     .clk(clk),
     .rst(rst),
@@ -37,7 +40,7 @@ module mcs4_tb(
     .clken_2(clken_2),
     .sync(sync),
     .cm_rom(cm_rom),
-    .dbus_in(d_cpu),
+    .dbus_in(d_bus),
     .dbus_out(d_rom),
     .io_in(io_in),
     .io_out(io_out)
@@ -50,7 +53,7 @@ module mcs4_tb(
     .clken_2(clken_2),
     .sync(sync),
     .cm_ram(cm_ram[0]),
-    .dbus_in(d_cpu),
+    .dbus_in(d_bus),
     .dbus_out(d_ram),
     .io_out(io_ram_out)
   );
@@ -61,7 +64,7 @@ module mcs4_tb(
     .clken_1(clken_1),
     .clken_2(clken_2),
     .test(1'b0),
-    .dbus_in(d_rom),
+    .dbus_in(d_bus),
     .dbus_out(d_cpu),
     .sync(sync),
     .cm_rom(cm_rom),
