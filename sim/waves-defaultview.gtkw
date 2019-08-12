@@ -1,0 +1,64 @@
+[*]
+[*] GTKWave Analyzer v3.3.97 (w)1999-2018 BSI
+[*] Mon Aug 12 06:46:09 2019
+[*]
+[dumpfile] "/Users/argueta/Documents/GitHub/mcs-4-pynq/sim/obj_dir/simx.fst"
+[dumpfile_mtime] "Mon Aug 12 06:38:02 2019"
+[dumpfile_size] 381727
+[savefile] "/Users/argueta/Documents/GitHub/mcs-4-pynq/sim/waves-defaultview.gtkw"
+[timestart] 1370
+[size] 960 1155
+[pos] -1 -1
+*-9.630667 2070 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.mcs4_tb.
+[sst_width] 251
+[signals_width] 193
+[sst_expanded] 1
+[sst_vpaned_height] 362
+@200
+-CPU
+@28
+TOP.mcs4_tb.cpu.clk
+@100000028
+TOP.mcs4_tb.cpu.icyc[2:0]
+@22
+TOP.mcs4_tb.cpu.pc[11:0]
+@100000028
+TOP.mcs4_tb.cpu.opr_code[3:0]
+TOP.mcs4_tb.cpu.opa_type[3:0]
+@100000029
+TOP.mcs4_tb.cpu.ioram_opa_code[3:0]
+@100000028
+TOP.mcs4_tb.cpu.accum_opa_code[3:0]
+@22
+TOP.mcs4_tb.cpu.idx_reg[63:0]
+@28
+TOP.mcs4_tb.cpu.idxr_wen
+@22
+TOP.mcs4_tb.cpu.accum[3:0]
+TOP.mcs4_tb.cpu.dbus_in[3:0]
+TOP.mcs4_tb.cpu.dbus_out[3:0]
+@200
+-ROM
+@22
+TOP.mcs4_tb.rom.chip_select[3:0]
+TOP.mcs4_tb.rom.in_addr[11:0]
+TOP.mcs4_tb.rom.io_in[3:0]
+TOP.mcs4_tb.rom.io_out[3:0]
+TOP.mcs4_tb.rom.rdata[7:0]
+@200
+-RAM
+@24
+TOP.mcs4_tb.ram.chip_index[1:0]
+TOP.mcs4_tb.ram.char_index[3:0]
+TOP.mcs4_tb.ram.reg_index[1:0]
+@22
+TOP.mcs4_tb.ram.io_out[3:0]
+TOP.mcs4_tb.ram.mem[255:0]
+TOP.mcs4_tb.ram.rdata[3:0]
+@28
+TOP.mcs4_tb.ram.src_received
+TOP.mcs4_tb.ram.opa_received
+[pattern_trace] 1
+[pattern_trace] 0
