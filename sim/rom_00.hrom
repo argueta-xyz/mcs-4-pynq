@@ -79,6 +79,10 @@ FC // KBP
 FA // STC
 FB // DAA
 // Write to memory
+F0 // CLB
+B0 // XCH 0
 21 // SRC 0
 E0 // WRM
+// Read from memory
+F0 // CLB
 E9 // RDM

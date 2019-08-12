@@ -186,7 +186,7 @@ end
 
 // Determine addr & control for Index Register R/W
 assign pair_mode = opa_type == mcs4::REG_PR;
-assign idxr_addr = pair_mode? {ird_reg_pair_addr, 1'b0} : ird_reg_addr;
+assign idxr_addr = pair_mode? {opa_buf[3:1], 1'b0} : opa_buf;
 assign idxr_wen  = (opr_code == mcs4::FIN_JIN ||
                     opr_code == mcs4::INC ||
                     opr_code == mcs4::ISZ ||
@@ -351,6 +351,17 @@ always_ff @(posedge clk) begin : proc_accum
         mcs4::BBL : accum <= instr[0].opa;
         mcs4::LDM : accum <= instr[0].opa;
         mcs4::IORAM_GRP : begin
+          case (ioram_opa_code)
+            mcs4::RDM : accum <= dbus_in;
+            mcs4::RD0 : accum <= dbus_in;
+            mcs4::RD1 : accum <= dbus_in;
+            mcs4::RD2 : accum <= dbus_in;
+            mcs4::RD3 : accum <= dbus_in;
+            mcs4::RDR : accum <= dbus_in;
+            mcs4::ADM : {carry, accum} <= {carry, accum} + dbus_in;
+            mcs4::SBM : {carry, accum} <= {carry, accum} - dbus_in;
+            default :   ;
+          endcase
         end
         mcs4::ACCUM_GRP : begin
           case (accum_opa_code)

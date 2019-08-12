@@ -12,7 +12,7 @@ module i4001 #(
   input  mcs4::char_t dbus_in,
   output mcs4::char_t dbus_out,
   input  mcs4::char_t io_in,
-  input  mcs4::char_t io_out
+  output mcs4::char_t io_out
 );
 
 // Timing regeneration
@@ -53,6 +53,8 @@ always_ff @(posedge clk) begin : proc_dbus_out
   rdata <= rom_array[in_addr[1:0]];
 end
 assign dbus_out = dbus_en ? rdata[char_sel] : '0;
+
+assign io_out = '0;
 
 initial begin
   $readmemh("../rom_00.hrom", rom_array);

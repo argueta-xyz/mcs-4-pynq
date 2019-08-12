@@ -46,12 +46,10 @@ always_ff @(posedge clk) begin : proc_in_addr
         opa <= dbus_in;
       end
       mcs4::X2 : begin
-        opa_received <= 0;
         src_received <= cm_ram;
         in_addr[0] <= cm_ram ? dbus_in : in_addr[0];
       end
       mcs4::X3 : begin
-        src_received <= 0;
         in_addr[1] <= src_received ? dbus_in : in_addr[1];
       end
       default : /* nothing */;
@@ -67,8 +65,23 @@ mcs4::char_t [mcs4::Ram_regs_per_chip-1:0]
 mcs4::char_t rdata;
 
 logic dbus_en;
-assign dbus_en = cm_ram && (chip_index == RAM_ID) && (icyc == mcs4::X2);
-always_ff @(posedge clk) begin : proc_mem
+assign dbus_en = opa_received && (chip_index == RAM_ID) && (icyc == mcs4::X2);
+always_ff @(posedge clk) begin : read_mem
+  if(icyc == mcs4::X1 && opa_received) begin
+    case (opa)
+      mcs4::SBM : rdata <= mem[reg_index][char_index];
+      mcs4::RDM : rdata <= mem[reg_index][char_index];
+      mcs4::ADM : rdata <= mem[reg_index][char_index];
+      mcs4::RD0 : rdata <= status[reg_index][0];
+      mcs4::RD1 : rdata <= status[reg_index][1];
+      mcs4::RD2 : rdata <= status[reg_index][2];
+      mcs4::RD3 : rdata <= status[reg_index][3];
+      default : ;
+    endcase
+  end
+end
+
+always_ff @(posedge clk) begin : write_mem
   if(icyc == mcs4::X2 && opa_received) begin
     case (opa)
       mcs4::WRM : mem[reg_index][char_index] <= dbus_in;
@@ -77,14 +90,7 @@ always_ff @(posedge clk) begin : proc_mem
       mcs4::WR1 : status[reg_index][1] <= dbus_in;
       mcs4::WR2 : status[reg_index][2] <= dbus_in;
       mcs4::WR3 : status[reg_index][3] <= dbus_in;
-      mcs4::SBM : rdata <= mem[reg_index][char_index];
-      mcs4::RDM : rdata <= mem[reg_index][char_index];
-      mcs4::ADM : rdata <= mem[reg_index][char_index];
-      mcs4::RD0 : rdata <= status[reg_index][0];
-      mcs4::RD1 : rdata <= status[reg_index][1];
-      mcs4::RD2 : rdata <= status[reg_index][2];
-      mcs4::RD3 : rdata <= status[reg_index][3];
-      default : /* default */;
+      default : ;
     endcase
   end
 end
