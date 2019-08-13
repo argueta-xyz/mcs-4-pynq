@@ -78,11 +78,30 @@ FC // KBP
 // Decimal adjust
 FA // STC
 FB // DAA
-// Write to memory
+// Write to memory and status reg's
 F0 // CLB
 B0 // XCH 0
 21 // SRC 0
 E0 // WRM
-// Read from memory
+E4 // WR0
+E5 // WR1
+E6 // WR2
+E7 // WR3
+// Read from memory and status reg's
 F0 // CLB
 E9 // RDM
+F0 // CLB
+EC // RD0
+F0 // CLB
+ED // RD0
+F0 // CLB
+EE // RD0
+F0 // CLB
+EF // RD0
+// Subtract & Add from memory
+D1 // LDM 1
+E0 // WRM
+D3 // LDM 3
+E8 // SBM
+E0 // WRM
+EB // ADM

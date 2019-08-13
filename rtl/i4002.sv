@@ -64,8 +64,10 @@ mcs4::char_t [mcs4::Ram_regs_per_chip-1:0]
              [mcs4::Ram_status_per_reg-1:0] status;
 mcs4::char_t rdata;
 
-logic dbus_en;
-assign dbus_en = opa_received && (chip_index == RAM_ID) && (icyc == mcs4::X2);
+logic opa_rd, dbus_en;
+assign opa_rd = opa == mcs4::SBM | opa == mcs4::RDM | opa == mcs4::ADM |
+                opa == mcs4::RD0 | opa == mcs4::RD1 | opa == mcs4::RD2 | opa == mcs4::RD3;
+assign dbus_en = opa_received && opa_rd && (chip_index == RAM_ID) && (icyc == mcs4::X2);
 always_ff @(posedge clk) begin : read_mem
   if(icyc == mcs4::X1 && opa_received) begin
     case (opa)
