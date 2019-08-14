@@ -170,14 +170,6 @@ always_ff @(posedge clk) begin : proc_ram_ctl
         mcs4::WR1 : ram_ctl[0] <= accum;
         mcs4::WR2 : ram_ctl[0] <= accum;
         mcs4::WR3 : ram_ctl[0] <= accum;
-        mcs4::SBM : ;
-        mcs4::RDM : ;
-        mcs4::RDR : ;
-        mcs4::ADM : ;
-        mcs4::RD0 : ;
-        mcs4::RD1 : ;
-        mcs4::RD2 : ;
-        mcs4::RD3 : ;
         default : ;
       endcase
     end
