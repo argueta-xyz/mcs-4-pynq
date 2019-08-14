@@ -58,12 +58,12 @@ always_ff @(posedge clk) begin : proc_instr
     opr_code     <= mcs4::NOP;
   end else begin
     if(icyc == mcs4::M1) begin
-      instr[double_instr].opr <= dbus_in;
-      opr_code <= double_instr ? opr_code : dbus_in;
+      instr[is_instr2].opr <= dbus_in;
+      opr_code <= is_instr2 ? opr_code : dbus_in;
     end else if(icyc == mcs4::M2) begin
-      instr[double_instr].opa <= dbus_in;
-      ioram_opa_code <= double_instr ? ioram_opa_code : dbus_in;
-      accum_opa_code <= double_instr ? accum_opa_code : dbus_in;
+      instr[is_instr2].opa <= dbus_in;
+      ioram_opa_code <= is_instr2 ? ioram_opa_code : dbus_in;
+      accum_opa_code <= is_instr2 ? accum_opa_code : dbus_in;
     end
   end
 end
@@ -216,8 +216,7 @@ always_ff @(posedge clk) begin : proc_stack_ptr
       stack[stack_ptr] <= next_pc;
     end
   end
-  // stack_ptr <= 2'b11;
-  // stack[stack_ptr] <= 12'hFED;//next_pc;
+  // TODO: Test stack logic
 
   end_of_page <= pc[mcs4::Addr_width-1-:8] == 8'hFF;
 end
@@ -287,6 +286,16 @@ always_ff @(posedge clk) begin : proc_idxr_wbuf
       mcs4::XCH : idxr_wbuf <= {accum, accum};
       default :   ;
     endcase
+  end
+end
+
+// Save dbus_in values
+mcs4::char_t io_read_data;
+always_ff @(posedge clk) begin : proc_io_read_data
+  if(rst) begin
+    io_read_data <= 0;
+  end else if(icyc == mcs4::X2) begin
+    io_read_data <= dbus_in;
   end
 end
 
@@ -382,7 +391,7 @@ always_ff @(posedge clk) begin : proc_accum
             default : /* default */;
           endcase
         end
-        default : /**/  ;
+        default : /* default */  ;
       endcase
     end
   end
@@ -392,7 +401,6 @@ end
 mcs4::char_t bus;
 mcs4::char_t [1:0] ram_ctl;
 logic io_read;
-mcs4::char_t io_read_data;
 always_ff @(posedge clk) begin : proc_io_read
   if(rst) begin
     io_read <= 0;
@@ -408,6 +416,10 @@ always_ff @(posedge clk) begin : proc_io_read
                   ioram_opa_code == mcs4::WR3 ));
   end
 end
+
+// ==========================
+// MULTI-CYCLE
+// ==========================
 always_comb begin : bus_arbitration
   case (icyc)
     mcs4::A1 : bus = addr_buff[0];
@@ -422,37 +434,6 @@ always_comb begin : bus_arbitration
   endcase // icyc
 end
 assign dbus_out = bus;
-
-// Save dbus_in values
-always_ff @(posedge clk) begin : proc_dbus_in
-  case (icyc)
-    // mcs4::A1 : dbus_out <= addr_buff[0];
-    // mcs4::A2 : dbus_out <= addr_buff[1];
-    // mcs4::A3 : dbus_out <= addr_buff[2];
-    mcs4::M1 : instr[is_instr2].opr <= dbus_in;
-    mcs4::M2 : instr[is_instr2].opa <= dbus_in;
-    // mcs4::X1 : bus <= '0;
-    mcs4::X2 : io_read_data <= dbus_in;
-    // mcs4::X3 : bus <= ram_ctl;
-    default : ;
-  endcase // icyc
-
-  // if(mcs4::A1) begin
-  //   addr_buff[0] <= dbus_in;
-  // end
-  // if(mcs4::A2) begin
-  //   addr_buff[1] <= dbus_in;
-  // end
-  // if(mcs4::A3) begin
-  //   addr_buff[2] <= dbus_in;
-  // end
-  // if(icyc == mcs4::M1) begin
-  //   instr[is_instr2].opr <= dbus_in;
-  // end
-  // if(icyc == mcs4::M2) begin
-  //   instr[is_instr2].opa <= dbus_in;
-  // end
-end
 
 always_ff @(posedge clk) begin : proc_cm_ram
   if(rst) begin
@@ -478,13 +459,7 @@ always_ff @(posedge clk) begin : proc_cm_ram
 end
 
 // Lint unused
-assign cm_rom = '0;
 assign is_instr2 = '0; // TODO: IMPLEMENT WHEN DECODING INSTR1
-
-// Index Register
-
-
-
 
 endmodule
 /* verilator lint_on UNUSED */

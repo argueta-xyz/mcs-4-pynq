@@ -78,7 +78,7 @@ end
 always_ff @(posedge clk) begin : proc_io_out
   if(rst || cl_rom) begin
     io_out <= 0;
-  end if (icyc == mcs4::X2 && opa_received && opa == mcs4::WRR) begin
+  end if(icyc == mcs4::X2 && opa_received && opa == mcs4::WRR) begin
     io_out <= ~IO_MASK & dbus_in;
   end
 end
