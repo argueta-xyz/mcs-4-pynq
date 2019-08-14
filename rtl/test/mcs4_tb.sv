@@ -7,23 +7,6 @@ module mcs4_tb(
   output [3:0]  io_rom_out,
   output [3:0]  io_ram_out
 );
-`ifdef IVERILOG
-  initial begin
-    $dumpfile("mcs4.lxt");
-    $dumpvars;
-  end
-
-  logic clk = 0;
-  logic rst = 1;
-
-  initial begin
-    #20 rst = 1'b0;
-    $display("Done.");
-    #200 $finish;
-  end
-
-  always #5 clk = ~clk;
-`endif // IVERILOG
 
   logic clken_1, clken_2;
   logic cm_rom, cl_rom;

@@ -13,9 +13,3 @@ run:
 clean:
 	rm -rf $(DESIGN).o $(DESIGN).lxt; \
 	rm -rf obj_dir
-
-iver:
-	iverilog -o $(DESIGN).o -c $(DESIGN).f -g2012; \
-	vvp $(DESIGN).o -lxt2
-
-
