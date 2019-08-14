@@ -105,3 +105,13 @@ D3 // LDM 3
 E8 // SBM
 E0 // WRM
 EB // ADM
+// Write to RAM output port
+D6 // LDM 6
+E1 // WMP
+// Write & Read to/from ROM I/O port
+DA // LDM A
+E2 // WRR
+F0 // CLB
+EA // RDR
+DF // LDM F
+E2 // WRR

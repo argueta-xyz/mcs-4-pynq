@@ -2,7 +2,10 @@
 
 module mcs4_tb(
   input         clk,
-  input         rst
+  input         rst,
+  input  [3:0]  io_in,
+  output [3:0]  io_rom_out,
+  output [3:0]  io_ram_out
 );
 `ifdef IVERILOG
   initial begin
@@ -23,22 +26,27 @@ module mcs4_tb(
 `endif // IVERILOG
 
   logic clken_1, clken_2;
-  logic cm_rom;
+  logic cm_rom, cl_rom;
+  /* verilator lint_off UNUSED */
   mcs4::char_t cm_ram;
+  /* verilator lint_off UNUSED */
   logic sync;
   mcs4::char_t d_cpu, d_rom, d_ram;
   mcs4::char_t d_bus;
-  /* verilator lint_off UNUSED */
-  mcs4::char_t io_in, io_rom_out, io_ram_out;
-  /* verilator lint_on UNUSED */
 
+  assign cl_rom = 0;
   assign d_bus = d_cpu | d_rom | d_ram;
-  i4001 rom (
+
+  i4001 #(
+    .ROM_ID(4'b0000),
+    .IO_MASK(4'b1100)
+  ) rom (
     .clk(clk),
     .rst(rst),
     .clken_1(clken_1),
     .clken_2(clken_2),
     .sync(sync),
+    .cl_rom(cl_rom),
     .cm_rom(cm_rom),
     .dbus_in(d_bus),
     .dbus_out(d_rom),
@@ -46,7 +54,9 @@ module mcs4_tb(
     .io_out(io_rom_out)
   );
 
-  i4002 #(.RAM_ID(2'b00)) ram (
+  i4002 #(
+    .RAM_ID(2'b00)
+  ) ram (
     .clk(clk),
     .rst(rst),
     .clken_1(clken_1),
@@ -70,8 +80,5 @@ module mcs4_tb(
     .cm_rom(cm_rom),
     .cm_ram (cm_ram)
   );
-
-  assign io_in = 0;
-
 
 endmodule
