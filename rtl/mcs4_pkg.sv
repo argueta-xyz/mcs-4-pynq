@@ -74,42 +74,23 @@ package mcs4;
 
   // Machine (OPR's)
   typedef enum logic [3:0] {
-    NOP       = 4'b0000,
-    JCN       = 4'b0001,
-    FIM_SRC   = 4'b0010,
-    FIN_JIN   = 4'b0011,
-    JUN       = 4'b0100,
-    JMS       = 4'b0101,
-    INC       = 4'b0110,
-    ISZ       = 4'b0111,
-    ADD       = 4'b1000,
-    SUB       = 4'b1001,
-    LD        = 4'b1010,
-    XCH       = 4'b1011,
-    BBL       = 4'b1100,
-    LDM       = 4'b1101,
-    IORAM_GRP = 4'b1110,
-    ACCUM_GRP = 4'b1111
+    NOP       = 4'b0000, // No Operation
+    JCN       = 4'b0001, // Jump Conditional
+    FIM_SRC   = 4'b0010, // Fetch Immediate/Send Register Control
+    FIN_JIN   = 4'b0011, // Fetch Indirect/Jump Indirect
+    JUN       = 4'b0100, // Jump Uncoditional
+    JMS       = 4'b0101, // Jump to Subroutine
+    INC       = 4'b0110, // Increment
+    ISZ       = 4'b0111, // Increment and Skip
+    ADD       = 4'b1000, // Add
+    SUB       = 4'b1001, // Subtract
+    LD        = 4'b1010, // Load
+    XCH       = 4'b1011, // Exchange
+    BBL       = 4'b1100, // Branch Back and Load
+    LDM       = 4'b1101, // Load Immediate
+    IORAM_GRP = 4'b1110, // I/O & RAM Group
+    ACCUM_GRP = 4'b1111  // Accumulator Group
   } opr_code_t;
-
-  // localparam NOP = 4'b0000; // OPR: 0000 - No Operation
-  // localparam JCN = 4'b0001; // OPR: 0000 - Jump Conditional
-  // localparam FIM = 4'b0010; // OPR: 0000 - Fetch Immediate
-  // localparam SRC = 4'b0010; // OPR: 0001 - Send Register Control
-  // localparam FIN = 4'b0011; // OPR: 0000 - Fetch Indirect
-  // localparam JIN = 4'b0011; // OPR: 0001 - Jump Indirect
-  // localparam JUN = 4'b0100; // OPR: 0000 - Jump Uncoditional
-  // localparam JMS = 4'b0101; // OPR: 0000 - Jump to Subroutine
-  // localparam INC = 4'b0110; // OPR: 0000 - Increment
-  // localparam ISZ = 4'b0111; // OPR: 0000 - Increment and Skip
-  // localparam ADD = 4'b1000; // OPR: 0000 - Add
-  // localparam SUB = 4'b1001; // OPR: 0000 - Subtract
-  // localparam LD  = 4'b1010; // OPR: 0000 - Load
-  // localparam XCH = 4'b1011; // OPR: 0000 - Exchange
-  // localparam BBL = 4'b1100; // OPR: 0000 - Branch Back and Load
-  // localparam LDM = 4'b1101; // OPR: 0000 - Load Immediate
-  // localparam IORAM_OPR = 4'b1110;
-  // localparam ACCUM_OPR = 4'b1111;
 
   // I/O and RAM (OPA's)
   typedef enum logic [3:0] {
@@ -130,22 +111,6 @@ package mcs4;
     RD3 = 4'b1111  // Read Status Char 3
   } ioram_opa_t;
 
-  // localparam WRM = 4'b0000; // Write Main Memory
-  // localparam WMP = 4'b0001; // Write RAM Port
-  // localparam WRR = 4'b0010; // Write ROM Port
-  // localparam WR0 = 4'b0100; // Write Status Char 0
-  // localparam WR1 = 4'b0101; // Write Status Char 1
-  // localparam WR2 = 4'b0110; // Write Status Char 2
-  // localparam WR3 = 4'b0111; // Write Status Char 3
-  // localparam SBM = 4'b1000; // Subtract Main Memory
-  // localparam RDM = 4'b1001; // Read Main Memory
-  // localparam RDR = 4'b1010; // Read ROM Port
-  // localparam ADM = 4'b1011; // Add Main Memory
-  // localparam RD0 = 4'b1100; // Read Status Char 0
-  // localparam RD1 = 4'b1101; // Read Status Char 1
-  // localparam RD2 = 4'b1110; // Read Status Char 2
-  // localparam RD3 = 4'b1111; // Read Status Char 3
-
   // Accumulator (OPA's)
   typedef enum logic [3:0] {
     CLB = 4'b0000, // Clear Both
@@ -163,21 +128,6 @@ package mcs4;
     KBP = 4'b1100, // Keybord Process
     DCL = 4'b1101  // Designate Command Line
   } accum_opa_t;
-
-  // localparam CLB = 4'b0000; // Clear Both
-  // localparam CLC = 4'b0001; // Clear Carry
-  // localparam IAC = 4'b0010; // Increment Accumulator
-  // localparam CMC = 4'b0011; // Complement Carry
-  // localparam CMA = 4'b0100; // Complement
-  // localparam RAL = 4'b0101; // Rotate Left
-  // localparam RAR = 4'b0110; // Rotate Right
-  // localparam TCC = 4'b0111; // Transfer Carry and Clear
-  // localparam DAC = 4'b1000; // Decrement Accumulator
-  // localparam TCS = 4'b1001; // Transfer Carry Subtract
-  // localparam STC = 4'b1010; // Set Carry
-  // localparam DAA = 4'b1011; // Decimal Adjust Accumulator
-  // localparam KBP = 4'b1100; // Keybord Process
-  // localparam DCL = 4'b1101; // Designate Command Line
 
   typedef struct packed {
     opr_code_t opr;
