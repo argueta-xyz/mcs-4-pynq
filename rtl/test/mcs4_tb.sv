@@ -1,6 +1,6 @@
 `timescale 1 ns/1 ns  // time-unit = 1 ns, precision = 1 ns
 
-module mcs4_tb(
+module mcs4_tb (
   input         clk,
   input         rst,
   input  [3:0]  io_in,
@@ -22,7 +22,8 @@ module mcs4_tb(
 
   i4001 #(
     .ROM_ID(4'b0000),
-    .IO_MASK(4'b1100)
+    .IO_MASK(4'b1100),
+    .ROM_FILE("rom_00.hrom")
   ) rom (
     .clk(clk),
     .rst(rst),

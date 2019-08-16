@@ -1,8 +1,10 @@
+ROM=../roms/rom_00.hrom
 DESIGN = mcs4
 TOP_MODULE = mcs4_tb
 verilate:
 	verilator -Wall -f $(DESIGN).f -cc --top-module $(TOP_MODULE) --exe ./$(DESIGN)_tb.cpp --trace-fst; \
 	cd obj_dir; \
+	ln -sf "../${ROM}" rom_00.hrom; \
 	make -j -C ./ -f V$(TOP_MODULE).mk V$(TOP_MODULE); \
 	./V$(TOP_MODULE) --trace
 
