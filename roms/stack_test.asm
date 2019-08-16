@@ -16,12 +16,15 @@ main    LDM $1
 loop    JMS incr
         LD  R0
         SUB R1
-        JCN CZ end
+        JCN CZ tozero
         JUN loop
 
 ; Increment Reg0, return 2
 incr    INC R0
         BBL $2
+
+; Increment Reg1 until 0
+tozero  ISZ R1 tozero
 
 ; End state, write to sentinel to output ports
 end     LDM $6

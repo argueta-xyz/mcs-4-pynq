@@ -200,7 +200,7 @@ assign idxr_addr = is_instr2 ? prev_idxr_addr : pair_mode ? {opa_buf[3:1], 1'b0}
 assign idxr_wen  = (opr_code == mcs4::FIM_SRC && !is_jin_or_src && is_instr2 ||
                     opr_code == mcs4::FIN_JIN && !is_jin_or_src && is_instr2 ||
                     opr_code == mcs4::INC ||
-                    opr_code == mcs4::ISZ ||
+                    opr_code == mcs4::ISZ && !is_instr2 ||
                     opr_code == mcs4::XCH);
 
 always_ff @(posedge clk) begin : idx_reg_read
@@ -294,7 +294,8 @@ always_ff @(posedge clk) begin : proc_jump_condition
         mcs4::JUN : next_pc <= is_instr2 ? ird_addr : addr_incr;
         mcs4::JMS : next_pc <= is_instr2 ? ird_addr : addr_incr;
         mcs4::BBL : next_pc <= stack[stack_ptr];
-        // mcs4::ISZ : next_pc <= TODO;
+        mcs4::ISZ : next_pc <= is_instr2 ? idxr_rbuf[idxr_addr.single] == 0 ? addr_incr : ird_addr :
+                                           addr_incr;
         default : next_pc <= addr_incr;
       endcase
     end
