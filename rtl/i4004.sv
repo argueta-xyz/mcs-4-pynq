@@ -180,9 +180,17 @@ always_ff @(posedge clk) begin : proc_ram_ctl
 end
 
 // Determine addr & control for Index Register R/W
-assign pair_mode = opa_type == mcs4::REG_PR;
-assign idxr_addr = pair_mode? {opa_buf[3:1], 1'b0} : opa_buf;
-assign idxr_wen  = (opr_code == mcs4::FIN_JIN ||
+always_ff @(posedge clk) begin : proc_reg_ctl
+  if(rst) begin
+    pair_mode <= 0;
+    idxr_addr <= 0;
+  end else if(icyc == mcs4::X1 && !is_instr2)begin
+    pair_mode <= opa_type == mcs4::REG_PR;
+    idxr_addr <= opa_type == mcs4::REG_PR? {opa_buf[3:1], 1'b0} : opa_buf;
+  end
+end
+assign idxr_wen  = (opr_code == mcs4::FIM_SRC && !is_jin_or_src && is_instr2 ||
+                    opr_code == mcs4::FIN_JIN ||
                     opr_code == mcs4::INC ||
                     opr_code == mcs4::ISZ ||
                     opr_code == mcs4::XCH);
@@ -290,6 +298,7 @@ always_ff @(posedge clk) begin : proc_idxr_wbuf
     idxr_wbuf <= 0;
   end else begin
     case (opr_code)
+      mcs4::FIM_SRC : idxr_wbuf <= {opr_buf, opa_buf};
       mcs4::INC : idxr_wbuf <= {inc_idxr, inc_idxr};
       mcs4::ISZ : idxr_wbuf <= {inc_idxr, inc_idxr};
       mcs4::XCH : idxr_wbuf <= {accum, accum};

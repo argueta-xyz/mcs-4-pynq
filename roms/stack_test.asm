@@ -2,7 +2,7 @@
 init
   NOP
   LD  $1
-  XCH $0
+  XCH R0
 
  ; Jump to incr subroutine, then loop back
 loop
@@ -11,5 +11,5 @@ loop
 
 ; Increment Reg0, return 2
 incr
-  INC $0
+  INC R0
   BBL $2

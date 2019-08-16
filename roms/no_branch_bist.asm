@@ -1,38 +1,41 @@
 ; Load Immediates into ACCUM and Exchange into regs
 NOP
 LDM $F
-XCH $0
+XCH R0
 LDM $E
-XCH $1
+XCH R1
 LDM $D
-XCH $2
+XCH R2
 LDM $C
-XCH $3
+XCH R3
 LDM $B
-XCH $4
+XCH R4
 LDM $A
-XCH $5
+XCH R5
 LDM $9
-XCH $6
+XCH R6
 LDM $8
-XCH $7
+XCH R7
 LDM $7
-XCH $8
+XCH R8
 LDM $6
-XCH $9
+XCH R9
 LDM $5
-XCH $A
+XCH R10
 LDM $4
-XCH $B
+XCH R11
 LDM $3
-XCH $C
+XCH R12
 LDM $2
-XCH $D
+XCH R13
 LDM $1
-XCH $E
+XCH R14
 LDM $0
-XCH $F
+XCH R15
 NOP
+; Fetch immediate
+FIM P0 $AB
+FIM P0 $EF
 ; Load RegE, add RegD, and sub RegC, then inc RegF
 LD  $E
 ADD $D
@@ -90,8 +93,8 @@ STC
 DAA
 ; Write to memory and status reg's
 CLB
-XCH $0
-SRC $0
+XCH R0
+SRC P0
 WRM
 WR0
 WR1
