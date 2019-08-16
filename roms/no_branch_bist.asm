@@ -39,7 +39,7 @@ FIM P0 $EF
 FIN P7
 FIM P7 $01
 ; Load RegE, add RegD, and sub RegC, then inc RegF
-LD  $E
+LD  R14
 ADD $D
 SUB $C
 INC $F

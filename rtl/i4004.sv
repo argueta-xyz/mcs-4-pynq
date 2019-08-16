@@ -375,6 +375,7 @@ mcs4::char_t cm_ram_buf;
 always_ff @(posedge clk) begin : proc_accum
   if(rst) begin
     accum <= 0;
+    cm_ram_buf <= 1;
   end else begin
     if(icyc == mcs4::X2) begin
       case (opr_code)
