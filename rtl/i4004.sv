@@ -276,13 +276,15 @@ always_ff @(posedge clk) begin : proc_jump_condition
   end
 end
 
+mcs4::char_t inc_idxr;
+assign inc_idxr = idxr_rbuf[idxr_addr.single] + 1;
 always_ff @(posedge clk) begin : proc_idxr_wbuf
   if(rst) begin
     idxr_wbuf <= 0;
   end else begin
     case (opr_code)
-      mcs4::INC : idxr_wbuf <= {idxr_rbuf[idxr_addr.single] + 1, idxr_rbuf[idxr_addr.single] + 1};
-      mcs4::ISZ : idxr_wbuf <= idxr_wbuf + 1;
+      mcs4::INC : idxr_wbuf <= {inc_idxr, inc_idxr};
+      mcs4::ISZ : idxr_wbuf <= {inc_idxr, inc_idxr};
       mcs4::XCH : idxr_wbuf <= {accum, accum};
       default :   ;
     endcase
