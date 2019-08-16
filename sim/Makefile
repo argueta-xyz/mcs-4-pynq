@@ -1,4 +1,4 @@
-ROM=../roms/rom_00.hrom
+ROM = ../roms/rom_00.hrom
 DESIGN = mcs4
 TOP_MODULE = mcs4_tb
 verilate:

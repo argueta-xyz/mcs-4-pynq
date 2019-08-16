@@ -49,6 +49,7 @@ mcs4::char_t [1:0] ird_data;
 mcs4::char_t [2:0] ird_addr;
 mcs4::char_t       ird_cond;
 mcs4::opr_code_t   opr_code;
+mcs4::char_t       opr_buf;
 logic is_jin_or_src;
 
 assign is_jin_or_src = instr[0].opa[0];
@@ -56,14 +57,14 @@ always_ff @(posedge clk) begin : proc_instr
   if(rst) begin
     instr[0].opr <= mcs4::NOP;
     opr_code     <= mcs4::NOP;
+    opr_buf      <= 0;
   end else begin
     if(icyc == mcs4::M1) begin
       instr[is_instr2].opr <= dbus_in;
       opr_code <= is_instr2 ? opr_code : dbus_in;
+      opr_buf  <= dbus_in;
     end else if(icyc == mcs4::M2) begin
       instr[is_instr2].opa <= dbus_in;
-      ioram_opa_code <= is_instr2 ? ioram_opa_code : dbus_in;
-      accum_opa_code <= is_instr2 ? accum_opa_code : dbus_in;
     end
   end
 end
@@ -82,6 +83,8 @@ always_ff @(posedge clk) begin : proc_decode_opr
     opa_buf <= dbus_in;
     if(!is_instr2) begin
       opr_type <= mcs4::NO_OPA;
+      ioram_opa_code <= dbus_in;
+      accum_opa_code <= dbus_in;
       case (opr_code)
         mcs4::NOP       : opa_type <= mcs4::NO_OPA;
         mcs4::JCN       : opa_type <= mcs4::COND;
@@ -148,8 +151,8 @@ always_ff @(posedge clk) begin : proc_decode_opa
       default : ;
     endcase
     case (opr_type)
-      mcs4::ADDR_MD : ird_addr[1] <= opa_buf;
-      mcs4::DATA_HI : ird_data[1] <= opa_buf;
+      mcs4::ADDR_MD : ird_addr[1] <= opr_buf;
+      mcs4::DATA_HI : ird_data[1] <= opr_buf;
       default : ;
     endcase
    end
@@ -203,24 +206,27 @@ logic end_of_page;
 // Stack logic
 always_ff @(posedge clk) begin : proc_stack_ptr
   if(rst) begin
+    pc <= 0;
     stack_ptr <= 0;
-  end else if(icyc == mcs4::X2) begin
-    if(opr_code == mcs4::JMS) begin
+  end else if(icyc == mcs4::X1) begin
+    if(opr_code == mcs4::JMS && is_instr2) begin
       // Stack push
       stack_ptr <= stack_ptr + 1;
-      stack[stack_ptr] <= next_pc;
+      stack[stack_ptr] <= addr_incr;
     end else if(opr_code == mcs4::BBL) begin
       // Stack pop
       stack_ptr <= stack_ptr - 1;
     end else begin
       stack[stack_ptr] <= next_pc;
     end
+  end else if(icyc == mcs4::X3) begin
+    pc <= next_pc;
   end
   // TODO: Test stack logic
 
   end_of_page <= pc[mcs4::Addr_width-1-:8] == 8'hFF;
 end
-assign pc = rst? '0 : stack[stack_ptr];
+// assign pc = rst? '0 : stack[stack_ptr];
 
 // Address incrementer
 mcs4::char_t [2:0] addr_buff;
@@ -267,8 +273,9 @@ always_ff @(posedge clk) begin : proc_jump_condition
                                                     addr_incr[2] :
                                                     pc[mcs4::Addr_width-1-:4]), ird_addr[1:0]} :
                                                 addr_incr;
-        mcs4::JUN : next_pc <= ird_addr;
-        mcs4::JMS : next_pc <= ird_addr;
+        mcs4::JUN : next_pc <= is_instr2 ? ird_addr : addr_incr;
+        mcs4::JMS : next_pc <= is_instr2 ? ird_addr : addr_incr;
+        mcs4::BBL : next_pc <= stack[stack_ptr];
         // mcs4::ISZ : next_pc <= TODO;
         default : next_pc <= addr_incr;
       endcase
@@ -323,6 +330,7 @@ end
 // Determine if next icyc series is part 2 of current instr.
 always_ff @(posedge clk) begin : proc_double_instr
   if(rst) begin
+    is_instr2 <= 0;
     double_instr <= 0;
   end else if(icyc == mcs4::X1) begin
     double_instr <= ~double_instr &&
@@ -331,6 +339,8 @@ always_ff @(posedge clk) begin : proc_double_instr
                      opr_code == mcs4::JUN ||
                      opr_code == mcs4::JMS ||
                      opr_code == mcs4::ISZ);
+  end else if(icyc == mcs4::X3) begin
+    is_instr2 <= !is_instr2 & double_instr;
   end
 end
 
@@ -459,9 +469,6 @@ always_ff @(posedge clk) begin : proc_cm_ram
     end
   end
 end
-
-// Lint unused
-assign is_instr2 = '0; // TODO: IMPLEMENT WHEN DECODING INSTR1
 
 endmodule
 /* verilator lint_on UNUSED */
