@@ -115,6 +115,10 @@ always_ff @(posedge clk) begin : proc_decode_opr
           opr_type <= mcs4::DATA_HI;
           opa_type <= mcs4::DATA_LO;
         end
+        mcs4::FIN_JIN : begin
+          opr_type <= mcs4::DATA_HI;
+          opa_type <= mcs4::DATA_LO;
+        end
         mcs4::JUN : begin
           opr_type <= mcs4::ADDR_MD;
           opa_type <= mcs4::ADDR_LO;
@@ -180,17 +184,21 @@ always_ff @(posedge clk) begin : proc_ram_ctl
 end
 
 // Determine addr & control for Index Register R/W
+logic         prev_pair_mode;
+mcs4::raddr_t prev_idxr_addr;
 always_ff @(posedge clk) begin : proc_reg_ctl
   if(rst) begin
-    pair_mode <= 0;
-    idxr_addr <= 0;
+    prev_pair_mode <= 0;
+    prev_idxr_addr <= 0;
   end else if(icyc == mcs4::X1 && !is_instr2)begin
-    pair_mode <= opa_type == mcs4::REG_PR;
-    idxr_addr <= opa_type == mcs4::REG_PR? {opa_buf[3:1], 1'b0} : opa_buf;
+    prev_pair_mode <= opa_type == mcs4::REG_PR;
+    prev_idxr_addr <= opa_type == mcs4::REG_PR ? {opa_buf[3:1], 1'b0} : opa_buf;
   end
 end
+assign pair_mode = is_instr2 ? prev_pair_mode : opa_type == mcs4::REG_PR;
+assign idxr_addr = is_instr2 ? prev_idxr_addr : pair_mode ? {opa_buf[3:1], 1'b0} : opa_buf;
 assign idxr_wen  = (opr_code == mcs4::FIM_SRC && !is_jin_or_src && is_instr2 ||
-                    opr_code == mcs4::FIN_JIN ||
+                    opr_code == mcs4::FIN_JIN && !is_jin_or_src && is_instr2 ||
                     opr_code == mcs4::INC ||
                     opr_code == mcs4::ISZ ||
                     opr_code == mcs4::XCH);
@@ -277,6 +285,7 @@ always_ff @(posedge clk) begin : proc_jump_condition
                           ird_cond[3] && (test == 0);
       end
       case (opr_code)
+        mcs4::FIN_JIN : next_pc <= is_instr2 ? addr_incr : addr_buff;
         mcs4::JCN : next_pc <=  jump_condition? {(end_of_page?
                                                     addr_incr[2] :
                                                     pc[mcs4::Addr_width-1-:4]), ird_addr[1:0]} :
@@ -299,6 +308,7 @@ always_ff @(posedge clk) begin : proc_idxr_wbuf
   end else begin
     case (opr_code)
       mcs4::FIM_SRC : idxr_wbuf <= {opr_buf, opa_buf};
+      mcs4::FIN_JIN : idxr_wbuf <= {opr_buf, opa_buf};
       mcs4::INC : idxr_wbuf <= {inc_idxr, inc_idxr};
       mcs4::ISZ : idxr_wbuf <= {inc_idxr, inc_idxr};
       mcs4::XCH : idxr_wbuf <= {accum, accum};
@@ -345,10 +355,11 @@ always_ff @(posedge clk) begin : proc_double_instr
     double_instr <= ~double_instr &&
                     (opr_code == mcs4::JCN ||
                      (opr_code == mcs4::FIM_SRC && !is_jin_or_src) ||
+                     (opr_code == mcs4::FIN_JIN && !is_jin_or_src) ||
                      opr_code == mcs4::JUN ||
                      opr_code == mcs4::JMS ||
                      opr_code == mcs4::ISZ);
-  end else if(icyc == mcs4::X3) begin
+  end else if(icyc == mcs4::A3) begin
     is_instr2 <= !is_instr2 & double_instr;
   end
 end
@@ -442,10 +453,12 @@ end
 // ==========================
 // MULTI-CYCLE
 // ==========================
+logic is_fin;
+assign is_fin = opr_code == mcs4::FIN_JIN && !is_jin_or_src && !is_instr2;
 always_comb begin : bus_arbitration
   case (icyc)
-    mcs4::A1 : bus = addr_buff[0];
-    mcs4::A2 : bus = addr_buff[1];
+    mcs4::A1 : bus = is_fin ? idxr_rbuf[0] : addr_buff[0];
+    mcs4::A2 : bus = is_fin ? idxr_rbuf[1] : addr_buff[1];
     mcs4::A3 : bus = addr_buff[2];
     mcs4::M1 : bus = '0;
     mcs4::M2 : bus = '0;

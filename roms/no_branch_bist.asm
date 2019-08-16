@@ -33,9 +33,11 @@ XCH R14
 LDM $0
 XCH R15
 NOP
-; Fetch immediate
+; Fetch immediate to RegPair0, then FetchIndirect to RegPair7
 FIM P0 $AB
 FIM P0 $EF
+FIN P7
+FIM P7 $01
 ; Load RegE, add RegD, and sub RegC, then inc RegF
 LD  $E
 ADD $D
