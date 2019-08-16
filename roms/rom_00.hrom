@@ -67,6 +67,10 @@ F4 // CMA
 FA // STC
 F7 // TCC
 F0 // CLB
+F9 // TCS
+FA // STC
+F9 // TCS
+F0 // CLB
 00 // NOP
 // Designate command lines
 FD // DCL

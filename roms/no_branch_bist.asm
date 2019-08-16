@@ -67,6 +67,10 @@ NOP
 STC
 TCC
 CLB
+TCS
+STC
+TCS
+CLB
 NOP
 ; Designate command lines
 DCL

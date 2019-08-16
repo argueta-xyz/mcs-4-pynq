@@ -387,6 +387,7 @@ always_ff @(posedge clk) begin : proc_accum
             mcs4::RAR : {carry, accum} <= {accum[0], carry, accum[3:1]};
             mcs4::TCC : {carry, accum} <= {1'b0, 3'b000, carry};
             mcs4::DAC : {carry, accum} <= accum - 1;
+            mcs4::TCS : {carry, accum} <= {1'b0, 2'b10, carry, ~carry};
             mcs4::STC : carry <= 1'b1;
             mcs4::DAA : {carry, accum} <= accum + (carry ? 5'd6 : 5'd0);
             mcs4::KBP : begin
