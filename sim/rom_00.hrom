@@ -33,6 +33,12 @@ BE // XCH E
 D0 // LDM 0
 BF // XCH F
 00 // NOP
+// Load RegE, add RegD, and sub RegC, then inc RegF
+AE // LD  E
+8D // ADD D
+9C // SUB C
+6F // INC F
+00 // NOP
 // Increment then decrement ACCUM
 F2 // IAC
 F2 // IAC

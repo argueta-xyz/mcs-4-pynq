@@ -281,7 +281,7 @@ always_ff @(posedge clk) begin : proc_idxr_wbuf
     idxr_wbuf <= 0;
   end else begin
     case (opr_code)
-      mcs4::INC : idxr_wbuf <= idxr_rbuf + 1;
+      mcs4::INC : idxr_wbuf <= {idxr_rbuf[idxr_addr.single] + 1, idxr_rbuf[idxr_addr.single] + 1};
       mcs4::ISZ : idxr_wbuf <= idxr_wbuf + 1;
       mcs4::XCH : idxr_wbuf <= {accum, accum};
       default :   ;
