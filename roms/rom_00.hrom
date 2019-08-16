@@ -103,11 +103,11 @@ E9 // RDM
 F0 // CLB
 EC // RD0
 F0 // CLB
-ED // RD0
+ED // RD1
 F0 // CLB
-EE // RD0
+EE // RD2
 F0 // CLB
-EF // RD0
+EF // RD3
 // Subtract & Add from memory
 D1 // LDM 1
 E0 // WRM

@@ -103,11 +103,11 @@ RDM
 CLB
 RD0
 CLB
-RD0
+RD1
 CLB
-RD0
+RD2
 CLB
-RD0
+RD3
 ; Subtract & Add from memory
 LDM $1
 WRM
