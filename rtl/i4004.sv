@@ -1,10 +1,7 @@
-/* verilator lint_off UNUSED */
 module i4004 (
   input         clk,
   input         rst,
   input         test,
-  output logic  clken_1,
-  output logic  clken_2,
   input  mcs4::char_t dbus_in,
   output mcs4::char_t dbus_out,
   output logic  sync,
@@ -23,8 +20,6 @@ always_ff @(posedge clk) begin : proc_clk_count
     clk_count <= clk_count + 4'h1;
     icyc <= mcs4::instr_cyc_t'(clk_count);
   end
-  clken_1 <= clk_count % 2 == 0;
-  clken_2 <= clk_count % 2 == 1;
 end
 assign sync = icyc == mcs4::X3;
 
@@ -39,12 +34,11 @@ logic pair_mode, idxr_wen;
 // M1 CYCLE
 // ==========================
 // Instruction Register Decode & Control
-mcs4::instr_t [1:0] instr;
+mcs4::instr_t instr;
 logic         double_instr;
 logic         is_instr2;
 
 mcs4::raddr_t      ird_reg_addr;
-mcs4::rpaddr_t     ird_reg_pair_addr;
 mcs4::char_t [1:0] ird_data;
 mcs4::char_t [2:0] ird_addr;
 mcs4::char_t       ird_cond;
@@ -52,19 +46,19 @@ mcs4::opr_code_t   opr_code;
 mcs4::char_t       opr_buf;
 logic is_jin_or_src;
 
-assign is_jin_or_src = instr[0].opa[0];
+assign is_jin_or_src = instr.opa[0];
 always_ff @(posedge clk) begin : proc_instr
   if(rst) begin
-    instr[0].opr <= mcs4::NOP;
+    instr.opr <= mcs4::NOP;
     opr_code     <= mcs4::NOP;
     opr_buf      <= 0;
   end else begin
     if(icyc == mcs4::M1) begin
-      instr[is_instr2].opr <= dbus_in;
-      opr_code <= is_instr2 ? opr_code : dbus_in;
-      opr_buf  <= dbus_in;
+      instr.opr <= is_instr2 ? instr.opr : dbus_in;
+      opr_code  <= is_instr2 ? opr_code  : dbus_in;
+      opr_buf   <= dbus_in;
     end else if(icyc == mcs4::M2) begin
-      instr[is_instr2].opa <= dbus_in;
+      instr.opa <= is_instr2 ? instr.opa : dbus_in;
     end
   end
 end
@@ -76,7 +70,6 @@ end
 mcs4::opchar_type_t opa_type, opr_type;
 mcs4::ioram_opa_t ioram_opa_code;
 mcs4::accum_opa_t accum_opa_code;
-logic instr_mod;
 mcs4::char_t opa_buf;
 always_ff @(posedge clk) begin : proc_decode_opr
   if(icyc == mcs4::M2) begin
@@ -147,7 +140,7 @@ always_ff @(posedge clk) begin : proc_decode_opa
    if(icyc == mcs4::X1) begin
     case (opa_type)
       mcs4::REG     : ird_reg_addr <= opa_buf;
-      mcs4::REG_PR  : {ird_reg_pair_addr, instr_mod} <= opa_buf;
+      mcs4::REG_PR  : ird_reg_addr <= opa_buf;
       mcs4::DATA_LO : ird_data[0] <= opa_buf;
       mcs4::ADDR_HI : ird_addr[2] <= opa_buf;
       mcs4::ADDR_LO : ird_addr[0] <= opa_buf;
@@ -185,18 +178,15 @@ end
 
 // Determine addr & control for Index Register R/W
 logic         prev_pair_mode;
-mcs4::raddr_t prev_idxr_addr;
 always_ff @(posedge clk) begin : proc_reg_ctl
   if(rst) begin
     prev_pair_mode <= 0;
-    prev_idxr_addr <= 0;
   end else if(icyc == mcs4::X1 && !is_instr2)begin
     prev_pair_mode <= opa_type == mcs4::REG_PR;
-    prev_idxr_addr <= opa_type == mcs4::REG_PR ? {opa_buf[3:1], 1'b0} : opa_buf;
   end
 end
 assign pair_mode = is_instr2 ? prev_pair_mode : opa_type == mcs4::REG_PR;
-assign idxr_addr = is_instr2 ? prev_idxr_addr : pair_mode ? {opa_buf[3:1], 1'b0} : opa_buf;
+assign idxr_addr = is_instr2 ? ird_reg_addr : opa_buf;
 assign idxr_wen  = (opr_code == mcs4::FIM_SRC && !is_jin_or_src && is_instr2 ||
                     opr_code == mcs4::FIN_JIN && !is_jin_or_src && is_instr2 ||
                     opr_code == mcs4::INC ||
@@ -220,17 +210,17 @@ mcs4::addr_t       pc, next_pc;
 logic stack_push, stack_pop;
 logic end_of_page;
 // Stack logic
+assign stack_push = opr_code == mcs4::JMS && is_instr2;
+assign stack_pop  = opr_code == mcs4::BBL;
 always_ff @(posedge clk) begin : proc_stack_ptr
   if(rst) begin
     pc <= 0;
     stack_ptr <= 0;
   end else if(icyc == mcs4::X1) begin
-    if(opr_code == mcs4::JMS && is_instr2) begin
-      // Stack push
+    if(stack_push) begin
       stack_ptr <= stack_ptr + 1;
       stack[stack_ptr] <= addr_incr;
-    end else if(opr_code == mcs4::BBL) begin
-      // Stack pop
+    end else if(stack_pop) begin
       stack_ptr <= stack_ptr - 1;
     end else begin
       stack[stack_ptr] <= next_pc;
@@ -247,8 +237,7 @@ end
 // Address incrementer
 mcs4::char_t [2:0] addr_buff;
 mcs4::char_t [2:0] addr_incr;
-logic        [2:0] addr_carry;
-logic              addr_overflow;
+logic        [1:0] addr_carry;
 always_ff @(posedge clk) begin : proc_addr_incr
   if(rst) begin
     addr_buff <= 0;
@@ -261,10 +250,9 @@ always_ff @(posedge clk) begin : proc_addr_incr
     // Spec calls for lookahead adder, whoops
     {addr_carry[0], addr_incr[0]} <= addr_buff[0] + 1;
     {addr_carry[1], addr_incr[1]} <= addr_buff[1] + {3'b0, addr_carry[0]};
-    {addr_carry[2], addr_incr[2]} <= addr_buff[2] + {3'b0, addr_carry[1]};
+                    addr_incr[2]  <= addr_buff[2] + {3'b0, addr_carry[1]};
   end
 end
-assign addr_overflow = addr_carry[2];
 
 // Next address selection
 // [DECODER DRIVER & MUX]
@@ -309,23 +297,13 @@ always_ff @(posedge clk) begin : proc_idxr_wbuf
     idxr_wbuf <= 0;
   end else begin
     case (opr_code)
-      mcs4::FIM_SRC : idxr_wbuf <= {opr_buf, opa_buf};
-      mcs4::FIN_JIN : idxr_wbuf <= {opr_buf, opa_buf};
+      mcs4::FIM_SRC : idxr_wbuf <= ird_data;
+      mcs4::FIN_JIN : idxr_wbuf <= ird_data;
       mcs4::INC : idxr_wbuf <= {inc_idxr, inc_idxr};
       mcs4::ISZ : idxr_wbuf <= {inc_idxr, inc_idxr};
       mcs4::XCH : idxr_wbuf <= {accum, accum};
       default :   ;
     endcase
-  end
-end
-
-// Save dbus_in values
-mcs4::char_t io_read_data;
-always_ff @(posedge clk) begin : proc_io_read_data
-  if(rst) begin
-    io_read_data <= 0;
-  end else if(icyc == mcs4::X2) begin
-    io_read_data <= dbus_in;
   end
 end
 
@@ -367,11 +345,8 @@ always_ff @(posedge clk) begin : proc_double_instr
 end
 
 // Adder
-mcs4::char_t adb_buf;
 mcs4::char_t accum;
 logic        carry;
-logic [2:0]  cm_ctl;
-logic [2:0]  accum_ctl;
 mcs4::char_t cm_ram_buf;
 always_ff @(posedge clk) begin : proc_accum
   if(rst) begin
@@ -384,8 +359,8 @@ always_ff @(posedge clk) begin : proc_accum
         mcs4::SUB : accum <= accum - idxr_rbuf[idxr_addr.single];
         mcs4::LD  : accum <= idxr_rbuf[idxr_addr.single];
         mcs4::XCH : accum <= idxr_rbuf[idxr_addr.single];
-        mcs4::BBL : accum <= instr[0].opa;
-        mcs4::LDM : accum <= instr[0].opa;
+        mcs4::BBL : accum <= instr.opa;
+        mcs4::LDM : accum <= instr.opa;
         mcs4::IORAM_GRP : begin
           case (ioram_opa_code)
             mcs4::RDM : accum <= dbus_in;
@@ -497,4 +472,3 @@ always_ff @(posedge clk) begin : proc_cm_ram
 end
 
 endmodule
-/* verilator lint_on UNUSED */

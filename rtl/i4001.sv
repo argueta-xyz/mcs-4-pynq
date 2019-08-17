@@ -5,10 +5,6 @@ module i4001 #(
 ) (
   input  clk,
   input  rst,
-  /* verilator lint_off UNUSED */
-  input  clken_1,
-  input  clken_2,
-  /* verilator lint_off UNUSED */
   input  sync,
   input  cl_rom,
   input  cm_rom,
@@ -64,12 +60,13 @@ always_ff @(posedge clk) begin : proc_rdata
 end
 
 // DBus output
-logic io_rden;
+logic io_rden, rom_rden;
 always_comb begin : proc_dbus_out
+  rom_rden = in_addr[2] == ROM_ID;
   io_rden = opa_received && opa == mcs4::RDR;
   case (icyc)
-    mcs4::M1 : dbus_out = rdata[1];
-    mcs4::M2 : dbus_out = rdata[0];
+    mcs4::M1 : dbus_out = rom_rden ? rdata[1] : '0;
+    mcs4::M2 : dbus_out = rom_rden ? rdata[0] : '0;
     mcs4::X2 : dbus_out = io_rden ? (IO_MASK & io_in) | (~IO_MASK & io_out) : '0;
     default : dbus_out = '0;
   endcase

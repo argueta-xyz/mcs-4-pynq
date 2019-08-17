@@ -8,7 +8,6 @@ module mcs4_tb (
   output [3:0]  io_ram_out
 );
 
-  logic clken_1, clken_2;
   logic cm_rom, cl_rom;
   /* verilator lint_off UNUSED */
   mcs4::char_t cm_ram;
@@ -27,8 +26,6 @@ module mcs4_tb (
   ) rom (
     .clk(clk),
     .rst(rst),
-    .clken_1(clken_1),
-    .clken_2(clken_2),
     .sync(sync),
     .cl_rom(cl_rom),
     .cm_rom(cm_rom),
@@ -43,8 +40,6 @@ module mcs4_tb (
   ) ram (
     .clk(clk),
     .rst(rst),
-    .clken_1(clken_1),
-    .clken_2(clken_2),
     .sync(sync),
     .cm_ram(cm_ram[0]),
     .dbus_in(d_bus),
@@ -55,8 +50,6 @@ module mcs4_tb (
   i4004 cpu (
     .clk(clk),
     .rst(rst),
-    .clken_1(clken_1),
-    .clken_2(clken_2),
     .test(1'b0),
     .dbus_in(d_bus),
     .dbus_out(d_cpu),

@@ -2,18 +2,12 @@ module i4002 #(
   parameter RAM_ID = 2'b00
 ) (
   input  clk,
-  /* verilator lint_off UNUSED */
-  input  clken_1,
-  input  clken_2,
-  /* verilator lint_off UNUSED */
   input  rst,
   input  sync,
   input  cm_ram,
   input  mcs4::char_t dbus_in,
   output mcs4::char_t dbus_out,
-  /* verilator lint_off UNUSED */
   output mcs4::char_t io_out
-  /* verilator lint_off UNUSED */
 );
 
 // Timing regeneration
