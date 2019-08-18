@@ -39,8 +39,8 @@ loop2   SRC R0R1       ; select register & address
         INC R0         ; increment R0
         ISZ R2, loop2  ; loop 4 times
 
-        LD  R4
-        JCN CNZ, loop0 ; loop 4 times over banks
+        LD  R4         ; load bank number
+        JCN CNZ, loop0 ; loop over 4 banks
 
 ; End state, write to sentinel to output ports
 done    LDM $6
@@ -48,4 +48,4 @@ done    LDM $6
         LDM $F
         WRR
 
-CNZ=3
+CNZ=3   ; Jump if accum != 0
