@@ -1,27 +1,34 @@
 `timescale 1 ns/1 ns  // time-unit = 1 ns, precision = 1 ns
 
-module mcs4_tb (
-  input         clk,
-  input         rst,
-  input  [3:0]  io_in,
-  output [3:0]  io_rom_out,
-  output [3:0]  io_ram_out,
+module mcs4_tb #(
+  parameter RAM_BANKS = 4,
+  parameter BANK_CHIPS = 4
+) (
+  input                     clk,
+  input                     rst,
+  input  mcs4::char_t       io_in,
+  output mcs4::char_t       io_rom_out,
+  output mcs4::char_t       io_ram_out,
 
-  input mcs4::char_t [2:0] dbg_addr,
-  input mcs4::byte_t       dbg_wdata,
-  input                    dbg_wen
+  input  mcs4::char_t [2:0] dbg_addr,
+  input  mcs4::byte_t       dbg_wdata,
+  input                     dbg_wen
 );
 
   logic cm_rom, cl_rom;
-  /* verilator lint_off UNUSED */
   mcs4::char_t cm_ram;
-  /* verilator lint_off UNUSED */
   logic sync;
+  mcs4::char_t [RAM_BANKS*BANK_CHIPS-1:0] d_ramchip;
+  mcs4::char_t [RAM_BANKS*BANK_CHIPS-1:0] d_ramchip_bus;
+  mcs4::char_t [RAM_BANKS*BANK_CHIPS-1:0] io_ramchip_out;
   mcs4::char_t d_cpu, d_rom, d_ram;
+
   mcs4::char_t d_bus;
 
   assign cl_rom = 0;
+  assign d_ram = d_ramchip_bus[-1];
   assign d_bus = d_cpu | d_rom | d_ram;
+  assign io_ram_out = io_ramchip_out[0];
 
   i4001 #(
     .ROM_ID(4'b0000),
@@ -43,17 +50,31 @@ module mcs4_tb (
     .dbg_wen(dbg_wen)
   );
 
-  i4002 #(
-    .RAM_ID(2'b00)
-  ) ram (
-    .clk(clk),
-    .rst(rst),
-    .sync(sync),
-    .cm_ram(cm_ram[0]),
-    .dbus_in(d_bus),
-    .dbus_out(d_ram),
-    .io_out(io_ram_out)
-  );
+  generate
+  for (genvar i = 0; i < RAM_BANKS; i++) begin : RAM_BANK
+    for (genvar j = 0; j < BANK_CHIPS; j++) begin : RAM_CHIP
+      int k = i * BANK_CHIPS + j;
+      i4002 #(
+        .RAM_ID(j)
+      ) ram (
+        .clk(clk),
+        .rst(rst),
+        .sync(sync),
+        .cm_ram(cm_ram[i]),
+        .dbus_in(d_bus),
+        .dbus_out(d_ramchip[k]),
+        .io_out(io_ramchip_out[k])
+      );
+    end
+  end
+  endgenerate
+
+  always_comb begin : proc_dram_or
+    d_ramchip_bus[0] = d_ramchip[0];
+    for (int i = 1; i < RAM_BANKS * BANK_CHIPS; i++) begin : RAM_BUS
+      d_ramchip_bus[i] = d_ramchip[i] | d_ramchip_bus[i-1];
+    end
+  end
 
   i4004 cpu (
     .clk(clk),

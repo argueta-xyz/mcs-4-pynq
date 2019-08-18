@@ -398,7 +398,15 @@ always_ff @(posedge clk) begin : proc_accum
                 default : accum <= 4'b1111;
               endcase
             end
-            mcs4::DCL : cm_ram_buf <= {accum[2:0], ~|accum[2:0]};
+            mcs4::DCL : begin
+              case (accum[1:0])
+                2'b00   : cm_ram_buf <= 4'b0001;
+                2'b01   : cm_ram_buf <= 4'b0010;
+                2'b10   : cm_ram_buf <= 4'b0100;
+                2'b11   : cm_ram_buf <= 4'b1000;
+                default : cm_ram_buf <= 4'b0001;
+              endcase
+            end
             default : /* default */;
           endcase
         end

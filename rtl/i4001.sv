@@ -61,8 +61,8 @@ end
 mcs4::byte_t rom_array [mcs4::Bytes_per_rom-1:0];
 mcs4::char_t [1:0] rdata;
 always_ff @(posedge clk) begin : proc_rdata
-  if(dbg_wen && dbg_waddr[2] == ROM_ID) begin
-      rom_array[dbg_waddr[1:0]] <= dbg_wdata;
+  if(dbg_wen && dbg_addr[2] == ROM_ID) begin
+      rom_array[dbg_addr[1:0]] <= dbg_wdata;
   end
   rdata <= rom_array[in_addr[1:0]];
 end
