@@ -5,7 +5,11 @@ module mcs4_tb (
   input         rst,
   input  [3:0]  io_in,
   output [3:0]  io_rom_out,
-  output [3:0]  io_ram_out
+  output [3:0]  io_ram_out,
+
+  input mcs4::char_t [2:0] dbg_addr,
+  input mcs4::byte_t       dbg_wdata,
+  input                    dbg_wen
 );
 
   logic cm_rom, cl_rom;
@@ -32,7 +36,11 @@ module mcs4_tb (
     .dbus_in(d_bus),
     .dbus_out(d_rom),
     .io_in(io_in),
-    .io_out(io_rom_out)
+    .io_out(io_rom_out),
+
+    .dbg_addr(dbg_addr),
+    .dbg_wdata(dbg_wdata),
+    .dbg_wen(dbg_wen)
   );
 
   i4002 #(

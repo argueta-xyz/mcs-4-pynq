@@ -11,7 +11,12 @@ module i4001 #(
   input  mcs4::char_t dbus_in,
   output mcs4::char_t dbus_out,
   input  mcs4::char_t io_in,
-  output mcs4::char_t io_out
+  output mcs4::char_t io_out,
+
+  // Test interface
+  input  mcs4::char_t [2:0] dbg_addr,
+  input  mcs4::byte_t       dbg_wdata,
+  input                     dbg_wen
 );
 
 // Timing regeneration
@@ -56,6 +61,9 @@ end
 mcs4::byte_t rom_array [mcs4::Bytes_per_rom-1:0];
 mcs4::char_t [1:0] rdata;
 always_ff @(posedge clk) begin : proc_rdata
+  if(dbg_wen && dbg_waddr[2] == ROM_ID) begin
+      rom_array[dbg_waddr[1:0]] <= dbg_wdata;
+  end
   rdata <= rom_array[in_addr[1:0]];
 end
 
