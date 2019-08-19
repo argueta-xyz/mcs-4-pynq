@@ -22,7 +22,11 @@ class Instruction:
 
 def stripComments(line):
   code = line.split(';')[0]
-  return code.split()
+  sansCommas = code.split(',')
+  lineTokens = []
+  for tokens in sansCommas:
+    lineTokens += tokens.split()
+  return lineTokens
 
 GLOBALS = {
   'labels' : {},
@@ -157,11 +161,11 @@ REG_CODES = {
 }
 
 REGP_CODES = {
-  'P0' : 0x0, 'R0R1' : 0x0, 'R0R1' : 0x0,
-  'P1' : 0x1, 'R2R3' : 0x1, 'R2R3' : 0x1,
-  'P2' : 0x2, 'R4R5' : 0x2, 'R4R5' : 0x2,
-  'P3' : 0x3, 'R6R7' : 0x3, 'R6R7' : 0x3,
-  'P4' : 0x4, 'R8R9' : 0x4, 'R8R9' : 0x4,
+  'P0' : 0x0, 'R0R1' : 0x0,
+  'P1' : 0x1, 'R2R3' : 0x1,
+  'P2' : 0x2, 'R4R5' : 0x2,
+  'P3' : 0x3, 'R6R7' : 0x3,
+  'P4' : 0x4, 'R8R9' : 0x4,
   'P5' : 0x5, 'RARB' : 0x5, 'R10R11' : 0x5,
   'P6' : 0x6, 'RCRD' : 0x6, 'R12R13' : 0x6,
   'P7' : 0x7, 'RERF' : 0x7, 'R14R15' : 0x7
@@ -175,7 +179,7 @@ def parseNum(num):
   elif num.startswith('0'):
     return int(num, 8)
   else:
-    int(num)
+    return int(num)
 
 def getHexRep(instr):
   # OPR
@@ -186,7 +190,7 @@ def getHexRep(instr):
   if instr.opa == 'COND':
     hexRep.append(GLOBALS['defines'][instr.tokens[1]])
   elif instr.opa == 'REGP':
-    regp = REGP_CODES[instr.tokens[1]]
+    regp = REGP_CODES[instr.tokens[1]] << 1
     if instr.opr == 'JIN' or instr.opr == 'SRC':
       regp |= 0x1
     hexRep.append(regp)
@@ -293,7 +297,7 @@ def main():
   hromFilename = args.asm[:-3] + 'hrom'
   with open(hromFilename, 'w') as f:
     f.write(hexRomOut)
-
+    f.write('\n')
 
 
 if __name__ == '__main__':
