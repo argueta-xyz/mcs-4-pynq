@@ -186,7 +186,10 @@ def getHexRep(instr):
   if instr.opa == 'COND':
     hexRep.append(GLOBALS['defines'][instr.tokens[1]])
   elif instr.opa == 'REGP':
-    hexRep.append(REGP_CODES[instr.tokens[1]])
+    regp = REGP_CODES[instr.tokens[1]]
+    if instr.opr == 'JIN' or instr.opr == 'SRC':
+      regp |= 0x1
+    hexRep.append(regp)
   elif instr.opa == 'REG':
     hexRep.append(REG_CODES[instr.tokens[1]])
   elif instr.opa == 'ADDR':
