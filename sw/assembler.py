@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+from __future__ import print_function
 import argparse
 
 class Instruction:
@@ -7,17 +8,26 @@ class Instruction:
   opa = ''
   isDouble = False
   byte2 = ''
+  tokens = []
+  hexRep = []
 
   def __str__(self):
-    return '%s\t[%s.%s%s]' % (
-              '%s:' % self.label if self.label else '', self.opr, self.opa,
-              '.%s' % (self.byte2) if self.isDouble else '' )
+    return '%s\t[%s.%s%s]\t-> %s' % (
+              '%s:' % self.label if self.label else '',
+              self.opr,
+              self.opa,
+              '.%s' % (self.byte2) if self.isDouble else '',
+              self.tokens)
 
 
 def stripComments(line):
   code = line.split(';')[0]
   return code.split()
 
+GLOBALS = {
+  'labels' : {},
+  'defines' : {}
+}
 
 OPR_CODES = {
   'NOP' : 0x0,
@@ -157,18 +167,64 @@ REGP_CODES = {
   'P7' : 0x7, 'RERF' : 0x7
 }
 
+def parseNum(num):
+  if num.startswith('$'):
+    return int(num[1:], 16)
+  elif data.startswith('%'):
+    return int(num[1:], 2)
+  elif data.startswith(0):
+    return int(num, 8)
+  else:
+    int(data)
 
-def parseLine(line):
+def getHexRep(instr):
+  # OPR
+  i = 0
+  hexRep = [OPR_CODES[instr.opr]]
+  i += 1
+  # OPA
+  if instr.opa == 'COND':
+    hexRep.append(GLOBALS['defines'][instr.tokens[1]])
+  elif instr.opa == 'REGP':
+    hexRep.append(REGP_CODES[instr.tokens[1]])
+  elif instr.opa == 'REG':
+    hexRep.append(REG_CODES[instr.tokens[1]])
+  elif instr.opa == 'ADDR':
+    # ADDR HI, append all
+    pass
+    # hexRep.append(GLOBALS['labels'][instr.tokens[i]])
+  elif instr.opa == 'DATA':
+    hexRep.append(parseNum(instr.tokens[1]))
+  else:
+    hexRep.append(instr.opa)
+  i += 1
+  if instr.isDouble:
+    if instr.byte2 == 'ADDR':
+      if instr.opa == 'ADDR':
+        addr = GLOBALS['labels'][instr.tokens[1]]
+        hexRep += [addr >> 8 & 0xF, addr >> 4 & 0xF, addr & 0xF]
+      else:
+        addr = GLOBALS['labels'][instr.tokens[2]]
+        hexRep += [addr >> 4 & 0xF, addr & 0xF]
+    elif instr.byte2 == 'DATA':
+      data = parseNum(instr.tokens[2])
+      hexRep += [data >> 4 & 0xF, data & 0xF]
+  return hexRep
+
+def parseLine(line, addr):
   encoded = []
   instr = Instruction()
   # parse comments
   i = 0
   if(not line[i] in OPR_CODES):
     if('=' in line[i]):
-      # Is condition
+      # Is define
+      define = [d.strip() for d in line[i].split('=')]
+      GLOBALS['defines'][define[0]] = int(define[1])
       return None
     # Is label
     instr.label = line[0]
+    GLOBALS['labels'][line[0]] = addr
     i += 1
   # Is OPR
   if line[i] not in OPR_CODES:
@@ -188,8 +244,7 @@ def parseLine(line):
     instr.isDouble = True
     instr.byte2 = TWO_BYTE_OPS[instr.opr]
 
-
-
+  instr.tokens = line[i:]
   return instr
 
 def main():
@@ -204,11 +259,33 @@ def main():
       if stripped:
         codeTokens.append(stripped)
 
+  # Parse Instruction types
+  instrs = []
+  addr = 0
   for line in codeTokens:
-    # print(line)
-    parsed = parseLine(line)
-    print(parsed)
-  # print(codeTokens)
+    instr = parseLine(line, addr)
+    if instr:
+      instrs.append(instr)
+      addr += 1
+
+  # Convert to Binary
+  hexRom = []
+  for instr in instrs:
+    hexRep = getHexRep(instr)
+    hexRom += hexRep
+    print(instr)
+
+  i = 0
+  print('\nROM Hex:\n===========================', end='')
+  for nibble in hexRom:
+    if i % 16 == 0:
+      print('')
+    elif i % 2 == 0:
+      print(' ', end='')
+    i += 1
+    print(format(nibble, 'X'), end='')
+  print('\n===========================')
+
 
 
 if __name__ == '__main__':
