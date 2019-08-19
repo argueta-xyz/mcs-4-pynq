@@ -148,23 +148,23 @@ REG_CODES = {
   'R7' : 0x7,
   'R8' : 0x8,
   'R9' : 0x9,
-  'RA' : 0xA,
-  'RB' : 0xB,
-  'RC' : 0xC,
-  'RD' : 0xD,
-  'RE' : 0xE,
-  'RF' : 0xF
+  'R10' : 0xA, 'RA' : 0xA,
+  'R11' : 0xB, 'RB' : 0xB,
+  'R12' : 0xC, 'RC' : 0xC,
+  'R13' : 0xD, 'RD' : 0xD,
+  'R14' : 0xE, 'RE' : 0xE,
+  'R15' : 0xF, 'RF' : 0xF
 }
 
 REGP_CODES = {
-  'P0' : 0x0, 'R0R1' : 0x0,
-  'P1' : 0x1, 'R2R3' : 0x1,
-  'P2' : 0x2, 'R4R5' : 0x2,
-  'P3' : 0x3, 'R6R7' : 0x3,
-  'P4' : 0x4, 'R8R9' : 0x4,
-  'P5' : 0x5, 'RARB' : 0x5,
-  'P6' : 0x6, 'RCRD' : 0x6,
-  'P7' : 0x7, 'RERF' : 0x7
+  'P0' : 0x0, 'R0R1' : 0x0, 'R0R1' : 0x0,
+  'P1' : 0x1, 'R2R3' : 0x1, 'R2R3' : 0x1,
+  'P2' : 0x2, 'R4R5' : 0x2, 'R4R5' : 0x2,
+  'P3' : 0x3, 'R6R7' : 0x3, 'R6R7' : 0x3,
+  'P4' : 0x4, 'R8R9' : 0x4, 'R8R9' : 0x4,
+  'P5' : 0x5, 'RARB' : 0x5, 'R10R11' : 0x5,
+  'P6' : 0x6, 'RCRD' : 0x6, 'R12R13' : 0x6,
+  'P7' : 0x7, 'RERF' : 0x7, 'R14R15' : 0x7
 }
 
 def parseNum(num):
@@ -269,25 +269,30 @@ def main():
     instr = parseLine(line, addr)
     if instr:
       instrs.append(instr)
-      addr += 1
+      addr += 2 if instr.isDouble else 1
 
   # Convert to Binary
   hexRom = []
   for instr in instrs:
     hexRep = getHexRep(instr)
     hexRom += hexRep
-    print(instr)
+    print('%s = %s' % (instr, hexRep))
 
   i = 0
-  print('\nROM Hex:\n===========================', end='')
+  print('\nROM Hex:\n===========================')
+  hexRomOut = ''
   for nibble in hexRom:
-    if i % 16 == 0:
-      print('')
-    elif i % 2 == 0:
-      print(' ', end='')
+    if i % 16 == 0 and i != 0:
+      hexRomOut += '\n'
+    elif i % 2 == 0 and i != 0:
+      hexRomOut += ' '
     i += 1
-    print(format(nibble, 'X'), end='')
-  print('\n===========================')
+    hexRomOut += format(nibble, 'X')
+  print(hexRomOut)
+  print('===========================')
+  hromFilename = args.asm[:-3] + 'hrom'
+  with open(hromFilename, 'w') as f:
+    f.write(hexRomOut)
 
 
 
