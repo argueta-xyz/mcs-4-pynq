@@ -170,12 +170,12 @@ REGP_CODES = {
 def parseNum(num):
   if num.startswith('$'):
     return int(num[1:], 16)
-  elif data.startswith('%'):
+  elif num.startswith('%'):
     return int(num[1:], 2)
-  elif data.startswith(0):
+  elif num.startswith('0'):
     return int(num, 8)
   else:
-    int(data)
+    int(num)
 
 def getHexRep(instr):
   # OPR
