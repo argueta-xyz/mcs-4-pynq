@@ -26,14 +26,14 @@ vector<int> parseRom(string filename) {
         copy(istream_iterator<string>(iss),
              istream_iterator<string>(),
              back_inserter(rom_byte_strings));
-        cout << "ROM to load:" << endl;
+        cout << "ROM to load:";
         int i = 0;
         for (vector<string>::iterator it = rom_byte_strings.begin();
              it != rom_byte_strings.end(); ++it) {
             unsigned int b = stoul(*it, nullptr, 16);
             rom_bytes.push_back(b);
             if (i % 8 == 0) {
-                cout << "\n0x" << setfill('0') << setw(2) << hex << i << ":\t";
+                cout << "\n\t0x" << setfill('0') << setw(2) << hex << i << ": ";
             }
             cout << setfill('0') << setw(2) << hex << b << " ";
             i++;
