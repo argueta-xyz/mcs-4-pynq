@@ -26,7 +26,8 @@ $(HROM): $(ASM)
 
 clean:
 	rm -rf $(DESIGN).o $(DESIGN).lxt; \
-	rm -rf obj_dir
+	rm -rf obj_dir \
+	rm -rf ../roms/*.hrom
 
 roms: ../roms/*.asm
 	for file in $^ ; do \
