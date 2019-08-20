@@ -27,3 +27,10 @@ $(HROM): $(ASM)
 clean:
 	rm -rf $(DESIGN).o $(DESIGN).lxt; \
 	rm -rf obj_dir
+
+roms: ../roms/*.asm
+	for file in $^ ; do \
+		../sw/assembler.py $${file} ; \
+	done
+
+
