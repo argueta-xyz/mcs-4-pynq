@@ -10,14 +10,20 @@ class Instruction:
   byte2 = ''
   tokens = []
   hexRep = []
+  addr = 0
 
   def __str__(self):
-    return '%s\t[%s.%s%s]\t-> %s' % (
-              '%s:' % self.label if self.label else '',
-              self.opr,
-              self.opa,
-              '.%s' % (self.byte2) if self.isDouble else '',
-              self.tokens)
+    scndToken = '' if len(self.tokens) < 2 else self.tokens[1]
+    thrdToken = '' if len(self.tokens) < 3 else self.tokens[2]
+    return '%03X: %s [%s %s %s] -> %s %s %s' % (
+              self.addr,
+              self.label.ljust(8),
+              self.opr.ljust(3),
+              str(self.opa).ljust(4),
+              self.byte2.ljust(5),
+              self.tokens[0].ljust(3),
+              scndToken.ljust(6),
+              thrdToken.ljust(6))
 
 
 def stripComments(line):
@@ -53,6 +59,7 @@ OPR_CODES = {
   'WRM' : 0xE,
   'WMP' : 0xE,
   'WRR' : 0xE,
+  'WPM' : 0xE,
   'WR0' : 0xE,
   'WR1' : 0xE,
   'WR2' : 0xE,
@@ -86,6 +93,7 @@ OPA_CODES = {
   'WRM' : 0x0,
   'WMP' : 0x1,
   'WRR' : 0x2,
+  'WPM' : 0x3,
   'WR0' : 0x4,
   'WR1' : 0x5,
   'WR2' : 0x6,
@@ -171,20 +179,40 @@ REGP_CODES = {
   'P7' : 0x7, 'RERF' : 0x7, 'R14R15' : 0x7
 }
 
+def getOpr(opr):
+  opr = opr.upper()
+  if opr not in OPR_CODES:
+    print("ERROR: OPR not found: ", opr)
+    return None
+  return OPR_CODES[opr]
+
+def isReg(reg):
+  return reg in REGP_CODES or reg in REG_CODES
+
 def parseNum(num):
   if num.startswith('$'):
     return int(num[1:], 16)
+  elif num.endswith('H'):
+    return int(num[:-1], 16)
   elif num.startswith('%'):
     return int(num[1:], 2)
-  elif num.startswith('0'):
-    return int(num, 8)
+  elif num.isdigit():
+    if num.startswith('0'):
+      return int(num, 8)
+    else:
+      return int(num)
+  elif num in GLOBALS['labels']:
+    return GLOBALS['labels'][num]
+  elif num in GLOBALS['defines']:
+    return GLOBALS['defines'][num]
   else:
-    return int(num)
+    print('ERROR: Unparseable expected number ', num)
+    return None
 
 def getHexRep(instr):
   # OPR
   i = 0
-  hexRep = [OPR_CODES[instr.opr]]
+  hexRep = [getOpr(instr.opr)]
   i += 1
   # OPA
   if instr.opa == 'COND':
@@ -195,11 +223,13 @@ def getHexRep(instr):
       regp |= 0x1
     hexRep.append(regp)
   elif instr.opa == 'REG':
-    hexRep.append(REG_CODES[instr.tokens[1]])
+    if isReg(instr.tokens[1]):
+      hexRep.append(REG_CODES[instr.tokens[1]])
+    else:
+      hexRep.append(parseNum(instr.tokens[1]))
   elif instr.opa == 'ADDR':
-    # ADDR HI, append all
+    # ADDR HI, append all later
     pass
-    # hexRep.append(GLOBALS['labels'][instr.tokens[i]])
   elif instr.opa == 'DATA':
     hexRep.append(parseNum(instr.tokens[1]))
   else:
@@ -227,7 +257,7 @@ def parseLine(line, addr):
     if('=' in line[i]):
       # Is define
       define = [d.strip() for d in line[i].split('=')]
-      GLOBALS['defines'][define[0]] = int(define[1])
+      GLOBALS['defines'][define[0]] = parseNum(define[1])
       return None
     # Is label
     instr.label = line[0]
@@ -236,7 +266,7 @@ def parseLine(line, addr):
   # Is OPR
   if line[i] not in OPR_CODES:
     print('ERROR: Invalid OPR code: %s', line[i])
-    return
+    return instr
   instr.opr = line[i]
   # Parse OPA
   if instr.opr in MODIFIER_TYPES:
@@ -257,6 +287,7 @@ def parseLine(line, addr):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('asm')
+  parser.add_argument('--debug', action='store_true')
   args = parser.parse_args()
   codeTokens = []
   with open(args.asm) as f:
@@ -270,8 +301,13 @@ def main():
   instrs = []
   addr = 0
   for line in codeTokens:
+    if args.debug:
+      print(line)
     instr = parseLine(line, addr)
     if instr:
+      instr.addr = addr
+      if args.debug:
+        print('%03X: %s' % (addr, instr))
       instrs.append(instr)
       addr += 2 if instr.isDouble else 1
 
@@ -280,7 +316,7 @@ def main():
   for instr in instrs:
     hexRep = getHexRep(instr)
     hexRom += hexRep
-    print('%s = %s' % (instr, hexRep))
+    print('%s = 0x%s' % (instr, ''.join((['%X' % x for x in hexRep]))))
 
   i = 0
   print('\nROM Hex:\n===========================')
