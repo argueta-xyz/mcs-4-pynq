@@ -257,22 +257,21 @@ end
 // Next address selection
 // [DECODER DRIVER & MUX]
 logic jump_condition;
-always_ff @(posedge clk) begin : proc_jump_condition
+always_comb begin : proc_jump_cond
+  if(ird_cond[0]) begin
+    jump_condition <= ird_cond[1] && (accum != 0) ||
+                      ird_cond[2] && (carry == 0) ||
+                      ird_cond[3] && (test == 1);
+  end else begin
+    jump_condition <= ird_cond[1] && (accum == 0) ||
+                      ird_cond[2] && (carry == 1) ||
+                      ird_cond[3] && (test == 0);
+  end
+end
+always_ff @(posedge clk) begin : proc_next_pc
   if(rst) begin
     next_pc <= 0;
-    jump_condition <= 0;
   end else begin
-    if(icyc == mcs4::X1) begin
-      if(ird_cond[0]) begin
-        jump_condition <= ird_cond[1] && (accum != 0) ||
-                          ird_cond[2] && (carry == 0) ||
-                          ird_cond[3] && (test == 1);
-      end else begin
-        jump_condition <= ird_cond[1] && (accum == 0) ||
-                          ird_cond[2] && (carry == 1) ||
-                          ird_cond[3] && (test == 0);
-      end
-    end
     if(icyc == mcs4::X2) begin
       case (opr_code)
         mcs4::FIN_JIN : next_pc <= is_jin_or_src ? {ird_addr[2] + {3'h0, end_of_page}, idxr_rbuf} :
