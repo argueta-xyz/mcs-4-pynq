@@ -71,7 +71,7 @@ end
 logic io_rden, rom_rden;
 always_comb begin : proc_dbus_out
   rom_rden = in_addr[2] == ROM_ID;
-  io_rden = opa_received && opa == mcs4::RDR;
+  io_rden = opa_received && opa == mcs4::RDR && chip_select == ROM_ID;
   case (icyc)
     mcs4::M1 : dbus_out = rom_rden ? rdata[1] : '0;
     mcs4::M2 : dbus_out = rom_rden ? rdata[0] : '0;

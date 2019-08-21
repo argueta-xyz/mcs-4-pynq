@@ -357,7 +357,7 @@ always_ff @(posedge clk) begin : proc_accum
     if(icyc == mcs4::X2) begin
       case (opr_code)
         mcs4::ADD : {carry, accum} <= accum + idxr_rbuf[idxr_addr.single];
-        mcs4::SUB : accum <= accum - idxr_rbuf[idxr_addr.single];
+        mcs4::SUB : {carry, accum} <= accum - idxr_rbuf[idxr_addr.single];
         mcs4::LD  : accum <= idxr_rbuf[idxr_addr.single];
         mcs4::XCH : accum <= idxr_rbuf[idxr_addr.single];
         mcs4::BBL : accum <= instr.opa;
@@ -450,8 +450,8 @@ always_comb begin : bus_arbitration
     mcs4::M1 : bus = '0;
     mcs4::M2 : bus = '0;
     mcs4::X1 : bus = '0;
-    mcs4::X2 : bus = io_read? ram_ctl[0] : '0;
-    mcs4::X3 : bus = is_jin_or_src ? ram_ctl[1] : 0;
+    mcs4::X2 : bus = io_read? ram_ctl[1] : '0;
+    mcs4::X3 : bus = is_jin_or_src ? ram_ctl[0] : 0;
     default  : bus = addr_buff[0];
   endcase // icyc
 end
