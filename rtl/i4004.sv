@@ -262,7 +262,7 @@ always_ff @(posedge clk) begin : proc_jump_condition
     next_pc <= 0;
     jump_condition <= 0;
   end else begin
-    if(icyc == mcs4::X2) begin
+    if(icyc == mcs4::X1) begin
       if(ird_cond[0]) begin
         jump_condition <= ird_cond[1] && (accum != 0) ||
                           ird_cond[2] && (carry == 0) ||
@@ -272,6 +272,8 @@ always_ff @(posedge clk) begin : proc_jump_condition
                           ird_cond[2] && (carry == 1) ||
                           ird_cond[3] && (test == 0);
       end
+    end
+    if(icyc == mcs4::X2) begin
       case (opr_code)
         mcs4::FIN_JIN : next_pc <= is_jin_or_src ? {ird_addr[2] + {3'h0, end_of_page}, idxr_rbuf} :
                                                    is_instr2 ? addr_incr : addr_buff;
