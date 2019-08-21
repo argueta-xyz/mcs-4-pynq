@@ -276,10 +276,10 @@ always_ff @(posedge clk) begin : proc_next_pc
       case (opr_code)
         mcs4::FIN_JIN : next_pc <= is_jin_or_src ? {ird_addr[2] + {3'h0, end_of_page}, idxr_rbuf} :
                                                    is_instr2 ? addr_incr : addr_buff;
-        mcs4::JCN : next_pc <=  jump_condition ? {(end_of_page ?
-                                                    addr_incr[2] :
-                                                    pc[mcs4::Addr_width-1-:4]), ird_addr[1:0]} :
-                                                 addr_incr;
+        mcs4::JCN : next_pc <=  is_instr2 && jump_condition ?
+                                  {(end_of_page ? addr_incr[2] : pc[mcs4::Addr_width-1-:4]),
+                                   ird_addr[1:0]} :
+                                  addr_incr;
         mcs4::JUN : next_pc <= is_instr2 ? ird_addr : addr_incr;
         mcs4::JMS : next_pc <= is_instr2 ? ird_addr : addr_incr;
         mcs4::BBL : next_pc <= stack[stack_ptr];
