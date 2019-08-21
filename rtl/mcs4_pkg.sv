@@ -97,6 +97,7 @@ package mcs4;
     WRM = 4'b0000, // Write Main Memory
     WMP = 4'b0001, // Write RAM Port
     WRR = 4'b0010, // Write ROM Port
+    WPM = 4'b0011, // Write Program Memory
     WR0 = 4'b0100, // Write Status Char 0
     WR1 = 4'b0101, // Write Status Char 1
     WR2 = 4'b0110, // Write Status Char 2
@@ -138,7 +139,7 @@ package mcs4;
       NOP, WRM, WMP, WRR, WR0, WR1, WR2, WR3,
       SBM, RDM, RDR, ADM, RD0, RD1, RD2, RD3,
       CLB, CLC, IAC, CMC, CMA, RAL, RAR, TCC,
-      DAC, TCS, STC, DAA, KBP, DCL */
+      DAC, TCS, STC, DAA, KBP, DCL, WPM */
   localparam Instr_opcode_mask_full = 8'b1111_1111;
 
   /* Opcode masks for:
