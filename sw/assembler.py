@@ -15,15 +15,16 @@ class Instruction:
   def __str__(self):
     scndToken = '' if len(self.tokens) < 2 else self.tokens[1]
     thrdToken = '' if len(self.tokens) < 3 else self.tokens[2]
-    return '%03X: %s [%s %s %s] -> %s %s %s' % (
+    byte2     = '' if len(self.byte2) == 0 else '[%s]' % self.byte2
+    return '%03X: %s %s %s %s -> [%s %s] %s' % (
               self.addr,
               self.label.ljust(8),
-              self.opr.ljust(3),
-              str(self.opa).ljust(4),
-              self.byte2.ljust(5),
               self.tokens[0].ljust(3),
               scndToken.ljust(6),
-              thrdToken.ljust(6))
+              thrdToken.ljust(6),
+              self.opr.ljust(3),
+              str(self.opa).ljust(4),
+              byte2.ljust(6))
 
 
 def stripComments(line):
