@@ -96,8 +96,11 @@ int main(int argc, char **argv, char** env) {
             }
         }
     }
-    cout << " [DONE]" << endl;
-
+    if (time >= timeout) {
+        cout << " [TIMEOUT]" << endl;
+    } else {
+        cout << " [DONE]" << endl;
+    }
     delete tb;
     exit(0);
 }
