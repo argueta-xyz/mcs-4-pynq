@@ -266,7 +266,7 @@ def parseLine(line, addr):
     i += 1
   # Is OPR
   if line[i] not in OPR_CODES:
-    print('ERROR: Invalid OPR code: %s', line[i])
+    print('ERROR: Invalid OPR code: %s' % line)
     return instr
   instr.opr = line[i]
   # Parse OPA
