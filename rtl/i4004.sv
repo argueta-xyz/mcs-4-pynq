@@ -155,6 +155,7 @@ always_ff @(posedge clk) begin : proc_decode_opa
    end
 end
 
+mcs4::char_t [1:0] ram_ctl;
 always_ff @(posedge clk) begin : proc_ram_ctl
   if(rst) begin
     ram_ctl <= 0;
@@ -318,7 +319,7 @@ always_ff @(posedge clk) begin : idx_reg_write
         // According to spec:
         //   ODD:  ADDR_LO or DATA_LO
         //   EVEN: ADDR_MD or DATA_HI
-        {idx_reg[idxr_addr.pair][1], idx_reg[idxr_addr.pair][0]} <= idxr_wbuf;
+        {idx_reg[idxr_addr.pair][0], idx_reg[idxr_addr.pair][1]} <= idxr_wbuf;
       end else begin
         idx_reg[idxr_addr.pair][idxr_addr.single] <= idxr_wbuf[0];
       end
@@ -419,7 +420,6 @@ end
 
 // Bus arbitrator
 mcs4::char_t bus;
-mcs4::char_t [1:0] ram_ctl;
 logic io_read;
 always_ff @(posedge clk) begin : proc_io_read
   if(rst) begin
