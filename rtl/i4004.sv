@@ -163,13 +163,13 @@ always_ff @(posedge clk) begin : proc_ram_ctl
       ram_ctl <= idx_reg[idxr_addr.pair];
     end else begin
       case (ioram_opa_code)
-        mcs4::WRM : ram_ctl[0] <= accum;
-        mcs4::WMP : ram_ctl[0] <= accum;
-        mcs4::WRR : ram_ctl[0] <= accum;
-        mcs4::WR0 : ram_ctl[0] <= accum;
-        mcs4::WR1 : ram_ctl[0] <= accum;
-        mcs4::WR2 : ram_ctl[0] <= accum;
-        mcs4::WR3 : ram_ctl[0] <= accum;
+        mcs4::WRM : ram_ctl <= {accum, 4'h0};
+        mcs4::WMP : ram_ctl <= {accum, 4'h0};
+        mcs4::WRR : ram_ctl <= {accum, 4'h0};
+        mcs4::WR0 : ram_ctl <= {accum, 4'h0};
+        mcs4::WR1 : ram_ctl <= {accum, 4'h0};
+        mcs4::WR2 : ram_ctl <= {accum, 4'h0};
+        mcs4::WR3 : ram_ctl <= {accum, 4'h0};
         default : ;
       endcase
     end

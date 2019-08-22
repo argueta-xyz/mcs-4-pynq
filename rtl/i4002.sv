@@ -50,7 +50,7 @@ always_ff @(posedge clk) begin : proc_in_addr
     endcase
   end
 end
-assign {char_index, chip_index, reg_index} = in_addr;
+assign {chip_index, reg_index, char_index} = in_addr;
 
 mcs4::char_t [mcs4::Ram_regs_per_chip-1:0]
              [mcs4::Ram_chars_per_reg-1:0] mem;
