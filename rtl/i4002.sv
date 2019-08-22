@@ -41,10 +41,10 @@ always_ff @(posedge clk) begin : proc_in_addr
       end
       mcs4::X2 : begin
         src_received <= cm_ram;
-        in_addr[0] <= cm_ram ? dbus_in : in_addr[0];
+        in_addr[1] <= cm_ram ? dbus_in : in_addr[1];
       end
       mcs4::X3 : begin
-        in_addr[1] <= src_received ? dbus_in : in_addr[1];
+        in_addr[0] <= src_received ? dbus_in : in_addr[0];
       end
       default : /* nothing */;
     endcase
