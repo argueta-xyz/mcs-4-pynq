@@ -69,11 +69,12 @@ ckdone	LD R4
 		JCN CZ	done
 
 ; fib[2:0] stored in mem[5:0]
+;
 fibmn	FIM R0R1 2
-		JMS	ld8
-		LD	R1
+		JMS	ld8		; R2R3 = fib[1]
+		LD	R3
 		XCH R7
-		LD	R0
+		LD	R2
 		XCH R6		; R6R7 = fib[1]
 		FIM R0R1 0
 		JMS wr8		; fib[0] = fib[1]
