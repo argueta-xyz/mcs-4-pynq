@@ -64,7 +64,7 @@ void initMemory(TESTBENCH<Vmcs4_tb>* tb, vector<int> rom_bytes) {
 int main(int argc, char **argv, char** env) {
     // Initialize Verilators variables
     Verilated::commandArgs(argc, argv);
-    int timeout = 20000;
+    int timeout = 10000;
     int time = 0;
     int extra_cycles = 32;
 
@@ -80,13 +80,13 @@ int main(int argc, char **argv, char** env) {
 
     cout << "Tick #" << time << " [START]" << endl;
     tb->reset();
-    ports->io_in = 0xA;
+    ports->io_in = 0xA7;
     // Tick the clock until we are done
     while(time < timeout && !tb->done()) {
         tb->tick();
         time++;
         cout << "\rTick #" << time << flush;
-        if (ports->io_rom_out == 0x3 && ports->io_ram_out == 0x6) {
+        if (ports->io_ram_out == 0x6) {
             if (extra_cycles == 32) {
                 cout << " [SENTINEL RECEIVED]" << endl;
             }

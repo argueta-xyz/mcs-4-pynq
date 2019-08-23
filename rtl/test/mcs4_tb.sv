@@ -6,8 +6,8 @@ module mcs4_tb #(
 ) (
   input                     clk,
   input                     rst,
-  input  mcs4::char_t       io_in,
-  output mcs4::char_t       io_rom_out,
+  input  mcs4::char_t [1:0] io_in,
+  output mcs4::char_t [1:0] io_rom_out,
   output mcs4::char_t       io_ram_out,
 
   input  mcs4::char_t [2:0] dbg_addr,
@@ -21,29 +21,50 @@ module mcs4_tb #(
   mcs4::char_t [RAM_BANKS*BANK_CHIPS-1:0] d_ramchip;
   mcs4::char_t [RAM_BANKS*BANK_CHIPS-1:0] d_ramchip_bus;
   mcs4::char_t [RAM_BANKS*BANK_CHIPS-1:0] io_ramchip_out;
-  mcs4::char_t d_cpu, d_rom, d_ram;
+  mcs4::char_t d_cpu, d_ram;
+  mcs4::char_t [1:0] d_rom;
 
   mcs4::char_t d_bus;
 
   assign cl_rom = 0;
   assign d_ram = d_ramchip_bus[-1];
-  assign d_bus = d_cpu | d_rom | d_ram;
+  assign d_bus = d_cpu | d_rom[0] | d_rom[1] | d_ram;
   assign io_ram_out = io_ramchip_out[0];
 
   i4001 #(
     .ROM_ID(4'b0000),
-    .IO_MASK(4'b1100),
+    .IO_MASK(4'b1111),
     .ROM_FILE("rom_00.hrom")
-  ) rom (
+  ) rom_0 (
     .clk(clk),
     .rst(rst),
     .sync(sync),
     .cl_rom(cl_rom),
     .cm_rom(cm_rom),
     .dbus_in(d_bus),
-    .dbus_out(d_rom),
-    .io_in(io_in),
-    .io_out(io_rom_out),
+    .dbus_out(d_rom[0]),
+    .io_in(io_in[0]),
+    .io_out(io_rom_out[0]),
+
+    .dbg_addr(dbg_addr),
+    .dbg_wdata(dbg_wdata),
+    .dbg_wen(dbg_wen)
+  );
+
+  i4001 #(
+    .ROM_ID(4'b0001),
+    .IO_MASK(4'b1111),
+    .ROM_FILE("rom_00.hrom")
+  ) rom_1 (
+    .clk(clk),
+    .rst(rst),
+    .sync(sync),
+    .cl_rom(cl_rom),
+    .cm_rom(cm_rom),
+    .dbus_in(d_bus),
+    .dbus_out(d_rom[1]),
+    .io_in(io_in[1]),
+    .io_out(io_rom_out[1]),
 
     .dbg_addr(dbg_addr),
     .dbg_wdata(dbg_wdata),
