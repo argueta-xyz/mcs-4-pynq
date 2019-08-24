@@ -1,14 +1,14 @@
 		NOP
-rdarg	FIM R0R1, $00
+rdarg	FIM R0R1 $00
 		SRC R0R1
 		RDR
 		XCH R5
-		FIM R0R1, $10
+		FIM R0R1 $10
 		SRC R0R1
 		RDR
 		XCH R4		; Read ROM port [1, 0] -> [R4, R5]
 
-setup	FIM R0R1, $00
+setup	FIM R0R1 $00
 		SRC R0R1
 		LDM 0
 		WRM
@@ -24,53 +24,41 @@ setup	FIM R0R1, $00
 		WRM			; RAM[5:0] = [0x01, 0x01, 0x0]
 
 ckarg0	LD	R5
-		JCN CNZ	ckarg1
+		JCN CANZ ckarg1
 		LD	R4
-		JCN CNZ	ckarg1
+		JCN CANZ ckarg1
 		JUN done		; arg == 0? Done if so
 
 ckarg1	LDM 1
 		SUB	R5
-		JCN CNZ	ckarg2
+		JCN CANZ ckarg2
 		CLB
 		LDM 1
 		XCH R1			; preload answer in case arg == 1
 		LD	R4
-		JCN CZ	done	; arg == 1? done if so
+		JCN CAZ	done	; arg == 1? done if so
 
 ckarg2	LDM 2
 		SUB	R4
-		JCN CNZ	prparg
+		JCN CANZ	prparg
 		CLB
 		LD	R5
 		LDM 1
 		XCH R0
-		JCN CZ	done	; arg == 2? done if so
+		JCN CAZ	done	; arg == 2? done if so
 
 prparg	JMS decarg
-		JMS decarg
 		JUN fibmn
 
-decarg	CLC
-		LDM 1
-		XCH R5		; {c,accum} = {0,arg.lo}, R5 = 1
-		SUB R5		; {c,accum} = {b,arg.lo - 1}
-		XCH R5		; {c,accum} = {b,1},      R5 = arg.lo - 1
-		LDM 0		; {c,accum} = {b,0}
-		RAL			; {c,accum} = {0,b}
-		XCH R4  	; accum = arg.hi, R4 = b
-		SUB R4
-		XCH R4  	; accum = b,      R4 = arg.hi - b
-		BBL 0
+
 
 ckdone	LD R4
-		JCN CNZ fibmn
+		JCN CANZ fibmn
 		LD R5
-		JCN CZ	done
+		JCN CAZ done
 
-; fib[2:0] stored in mem[5:0]
-;
-fibmn	FIM R0R1 2
+fibmn	JMS	decarg
+		FIM R0R1 2
 		JMS	ld8		; R2R3 = fib[1]
 		LD	R3
 		XCH R7
@@ -94,13 +82,43 @@ fibmn	FIM R0R1 2
 		LD	R6
 		XCH	R2		; R2R3 = (new)fib[0] + (new)fib[1]
 
+		LD	R3
+		XCH R7
+		LDM $F
+		XCH R6
+		JMS and4
+		LD	R9
+		XCH	R3		; R3 = new_fib[2].lo & 0xF
+		LD	R2
+		XCH R7
+		LDM $7
+		XCH R6
+		JMS and4
+		LD	R9
+		XCH	R2		; R2 = new_fib[2].hi & 0x7
+
 		FIM	R0R1 4
-		JMS wr8		; fib[2] = (new)fib[0] + (new)fib[1]
-		; TODO: Implement 0x7F & fib[2]
+		JMS wr8		; fib[2] = new_fib[2] & 0x7F
+
 		JUN	ckdone
 
 
 ; Subroutines
+; DecrementArg: Decrements 8bit arg
+; Args:			R4R5 = arg
+; Returns: 		R4R5 = arg - 1
+decarg	CLC
+		LDM 1
+		XCH R5		; {c,accum} = {0,arg.lo}, R5 = 1
+		SUB R5		; {c,accum} = {b,arg.lo - 1}
+		XCH R5		; {c,accum} = {b,1},      R5 = arg.lo - 1
+		LDM 0		; {c,accum} = {b,0}
+		RAL			; {c,accum} = {0,b}
+		XCH R4  	; accum = arg.hi, R4 = b
+		SUB R4
+		XCH R4  	; accum = b,      R4 = arg.hi - b
+		BBL 0
+
 ; NextAddr: Increments 8bit addr
 ; Args:		R0R1 = addr1
 ; Returns:	R0R1 = addr2
@@ -152,11 +170,38 @@ add8	CLC
 		XCH R6
 		BBL 0
 
+; AndChar: AND's 2 chars together
+; Args: 	R6R7 = [a, b]
+; Returns:	R8R9 = [0, a & b]
+and4	CLB
+		XCH R9
+		LDM 4
+		XCH R8
+and4lp	LD	R6
+		RAR				; C=a[i]
+		XCH R6
+		JCN	CCZ and4z
+		CLC				; a[i] == 1
+		LD	R7
+		RAR				; C=b[i] (also a[i] & b[i])
+		XCH R7
+		; JCN CCZ and4z
+and4z	LD	R9			; c={a[i] & b[i]}, accum = a[prev] & b[prev]
+		RAR
+		XCH R9			; R9 = {a[i:0] & b[i:0]}
+		LD	R8
+		DAC
+		XCH R8			; loopCount--
+		LD R8
+		JCN CANZ and4lp
+		BBL 0
 
 done	FIM R2R3, $00
 		SRC R2R3
 		LDM $6 		; Write to RAM output port
 		WMP
 
-CZ=%0010
-CNZ=%0011
+CAZ=%0010
+CANZ=%0011
+CCZ=%0101
+CCNZ=%0100
