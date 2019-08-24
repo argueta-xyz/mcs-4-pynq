@@ -122,11 +122,10 @@ decarg	CLC
 ; NextAddr: Increments 8bit addr
 ; Args:		R0R1 = addr1
 ; Returns:	R0R1 = addr2
-nxtadr	LD	R1	 	; addr1 = R0R1
-		CLC		 	; {c,accum} = {0,addr1.lo}
+nxtadr	CLB
+		XCH	R1	 	; {c,accum} = {0,addr1.lo}
 		IAC		 	; {c,accum} = {c,addr2.lo}
 		XCH R1	 	; {c,accum} = {c,?}, R1 = addr2.lo
-		LDM 0	 	; {c,accum} = {c,0}
 		RAL		 	; {c,accum} = {0,c}
 		ADD R0	 	; {c,accum} = {c,addr2.hi}
 		XCH R0	 	; R0R1 = addr2
