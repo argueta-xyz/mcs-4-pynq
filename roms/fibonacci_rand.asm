@@ -176,8 +176,8 @@ add8	CLC
 and4	CLB
 		XCH R9
 		LDM 4
-		XCH R8
-and4lp	LD	R6
+and4lp	XCH R8
+		LD	R6
 		RAR				; C=a[i]
 		XCH R6
 		JCN	CCZ and4z
@@ -185,14 +185,11 @@ and4lp	LD	R6
 		LD	R7
 		RAR				; C=b[i] (also a[i] & b[i])
 		XCH R7
-		; JCN CCZ and4z
 and4z	LD	R9			; c={a[i] & b[i]}, accum = a[prev] & b[prev]
 		RAR
 		XCH R9			; R9 = {a[i:0] & b[i:0]}
 		LD	R8
-		DAC
-		XCH R8			; loopCount--
-		LD R8
+		DAC				; loopCount--
 		JCN CANZ and4lp
 		BBL 0
 
