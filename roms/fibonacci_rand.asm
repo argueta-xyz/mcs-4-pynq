@@ -159,11 +159,10 @@ wr8		SRC R0R1
 ; AddBytes: Adds 2 bytes together
 ; Args:		R6R7 = a, R8R9 = b
 ; Returns:	R6R7 = a + b
-add8	CLC
+add8	CLB
 		LD	R7
 		ADD	R9
 		XCH R7
-		LDM 0
 		RAL
 		ADD R6
 		ADD R8
