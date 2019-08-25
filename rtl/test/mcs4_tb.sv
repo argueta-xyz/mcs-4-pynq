@@ -27,7 +27,7 @@ module mcs4_tb #(
   mcs4::char_t d_bus;
 
   assign cl_rom = 0;
-  assign d_ram = d_ramchip_bus[-1];
+  assign d_ram = d_ramchip_bus[RAM_BANKS*BANK_CHIPS-1];
   assign d_bus = d_cpu | d_rom[0] | d_rom[1] | d_ram;
   assign io_ram_out = io_ramchip_out[0];
 

@@ -49,7 +49,7 @@ always_ff @(posedge clk) begin : proc_in_addr
       mcs4::A3 : in_addr[2] <= dbus_in;
       mcs4::M2 : begin
         opa_received <= cm_rom;
-        opa <= dbus_in;
+        opa <= mcs4::ioram_opa_t'(dbus_in);
       end
       mcs4::X2 : chip_select <= cm_rom ? dbus_in : chip_select;
       default : /* nothing */;

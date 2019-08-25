@@ -37,7 +37,7 @@ always_ff @(posedge clk) begin : proc_in_addr
     case (icyc)
       mcs4::M2 : begin
         opa_received <= cm_ram;
-        opa <= dbus_in;
+        opa <=  mcs4::ioram_opa_t'(dbus_in);
       end
       mcs4::X2 : begin
         src_received <= cm_ram;

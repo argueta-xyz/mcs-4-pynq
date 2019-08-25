@@ -54,8 +54,8 @@ always_ff @(posedge clk) begin : proc_instr
     opr_buf      <= 0;
   end else begin
     if(icyc == mcs4::M1) begin
-      instr.opr <= is_instr2 ? instr.opr : dbus_in;
-      opr_code  <= is_instr2 ? opr_code  : dbus_in;
+      instr.opr <= is_instr2 ? instr.opr :  mcs4::opr_code_t'(dbus_in);
+      opr_code  <= is_instr2 ? opr_code  :  mcs4::opr_code_t'(dbus_in);
       opr_buf   <= dbus_in;
     end else if(icyc == mcs4::M2) begin
       instr.opa <= is_instr2 ? instr.opa : dbus_in;
@@ -76,8 +76,8 @@ always_ff @(posedge clk) begin : proc_decode_opr
     opa_buf <= dbus_in;
     if(!is_instr2) begin
       opr_type <= mcs4::NO_OPA;
-      ioram_opa_code <= dbus_in;
-      accum_opa_code <= dbus_in;
+      ioram_opa_code <=  mcs4::ioram_opa_t'(dbus_in);
+      accum_opa_code <=  mcs4::accum_opa_t'(dbus_in);
       case (opr_code)
         mcs4::NOP       : opa_type <= mcs4::NO_OPA;
         mcs4::JCN       : opa_type <= mcs4::COND;
@@ -155,6 +155,8 @@ always_ff @(posedge clk) begin : proc_decode_opa
    end
 end
 
+logic        carry;
+mcs4::char_t accum;
 mcs4::char_t [1:0] ram_ctl;
 always_ff @(posedge clk) begin : proc_ram_ctl
   if(rst) begin
@@ -210,6 +212,7 @@ logic        [1:0] stack_ptr;
 mcs4::addr_t       pc, next_pc;
 logic stack_push, stack_pop;
 logic end_of_page;
+mcs4::char_t [2:0] addr_incr;
 // Stack logic
 assign stack_push = opr_code == mcs4::JMS && is_instr2;
 assign stack_pop  = opr_code == mcs4::BBL;
@@ -229,7 +232,6 @@ always_ff @(posedge clk) begin : proc_stack_ptr
   end else if(icyc == mcs4::X3) begin
     pc <= next_pc;
   end
-  // TODO: Test stack logic
 
   end_of_page <= pc[mcs4::Addr_width-1-:8] == 8'hFF;
 end
@@ -237,7 +239,6 @@ end
 
 // Address incrementer
 mcs4::char_t [2:0] addr_buff;
-mcs4::char_t [2:0] addr_incr;
 logic        [1:0] addr_carry;
 always_ff @(posedge clk) begin : proc_addr_incr
   if(rst) begin
@@ -347,8 +348,6 @@ always_ff @(posedge clk) begin : proc_double_instr
 end
 
 // Adder
-mcs4::char_t accum;
-logic        carry;
 mcs4::char_t cm_ram_buf;
 always_ff @(posedge clk) begin : proc_accum
   if(rst) begin
