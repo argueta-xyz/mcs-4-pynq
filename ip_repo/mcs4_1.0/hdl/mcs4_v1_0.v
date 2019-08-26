@@ -7,6 +7,7 @@
     parameter integer NUM_ROMS = 1,
     parameter integer NUM_RAM_ROWS = 1,
     parameter integer NUM_RAM_COLS = 1,
+    parameter [63:0]  ROM_IO_MASK = 64'hFFFFFFFFFFFFFFFF,
     // User parameters ends
     // Do not modify the parameters beyond this line
 
@@ -168,7 +169,7 @@
     for (genvar i = 0; i < NUM_ROMS; i=i+1) begin : ROMS
       i4001 #(
         .ROM_ID(i),
-        .IO_MASK(4'b1111),
+        .IO_MASK(ROM_IO_MASK[i*4+:4]),
         .ROM_FILE("rom_00.hrom")
       ) rom (
         .clk(s_axi_aclk),

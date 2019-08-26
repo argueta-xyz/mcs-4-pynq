@@ -13,7 +13,7 @@
     // Width of S_AXI data bus
     parameter integer C_S_AXI_DATA_WIDTH  = 32,
     // Width of S_AXI address bus
-    parameter integer C_S_AXI_ADDR_WIDTH  = 10,
+    parameter integer C_S_AXI_ADDR_WIDTH  = 12,
     // Width of optional user defined signal in write address channel
     parameter integer C_S_AXI_AWUSER_WIDTH  = 0,
     // Width of optional user defined signal in read address channel
@@ -214,7 +214,7 @@
   //----------------------------------------------
   //-- Signals for user logic memory space example
   //------------------------------------------------
-  wire [OPT_MEM_ADDR_BITS:0] mem_address;
+  wire [11:0] mem_address;
   wire [USER_NUM_MEM-1:0] mem_select;
 
   genvar i;
@@ -559,7 +559,7 @@
   assign mem_address = (axi_arv_arr_flag? axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:(axi_awv_awr_flag? axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:0));
   wire mem_rden;
   wire mem_wren;
-
+  wire [1:0] byte_index;
   assign mem_wren = axi_wready && S_AXI_WVALID ;
   assign mem_rden = axi_arv_arr_flag ; //& ~axi_rvalid
 
@@ -577,7 +577,8 @@
   end
 
   // Add user logic here
-  assign dbg_addr  = {mem_address[11:2], (wbyte_count - 1)[1:0]};
+  assign byte_index = wbyte_count - 3'd1;
+  assign dbg_addr  = {mem_address[11:2], byte_index};
   assign dbg_wdata = wbyte_count == 3'd4 ? S_AXI_WDATA[31:24]:
                      wbyte_count == 3'd3 ? S_AXI_WDATA[23:16]:
                      wbyte_count == 3'd2 ? S_AXI_WDATA[15: 8]:

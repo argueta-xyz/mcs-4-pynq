@@ -16,6 +16,7 @@ proc init_gui { IPINST } {
   set_property tooltip {MCS-4 Customization} ${MCS-4_Customization}
   set NUM_ROMS [ipgui::add_param $IPINST -name "NUM_ROMS" -parent ${MCS-4_Customization}]
   set_property tooltip {Number of 4001 ROMs to instantiate} ${NUM_ROMS}
+  ipgui::add_param $IPINST -name "ROM_IO_MASK" -parent ${MCS-4_Customization}
   set NUM_RAMS [ipgui::add_param $IPINST -name "NUM_RAMS" -parent ${MCS-4_Customization}]
   set_property tooltip {Number of 4002 RAMs} ${NUM_RAMS}
   set NUM_RAM_ROWS [ipgui::add_param $IPINST -name "NUM_RAM_ROWS" -parent ${MCS-4_Customization}]
@@ -67,6 +68,15 @@ proc update_PARAM_VALUE.NUM_ROMS { PARAM_VALUE.NUM_ROMS } {
 
 proc validate_PARAM_VALUE.NUM_ROMS { PARAM_VALUE.NUM_ROMS } {
 	# Procedure called to validate NUM_ROMS
+	return true
+}
+
+proc update_PARAM_VALUE.ROM_IO_MASK { PARAM_VALUE.ROM_IO_MASK } {
+	# Procedure called to update ROM_IO_MASK when any of the dependent parameters in the arguments change
+}
+
+proc validate_PARAM_VALUE.ROM_IO_MASK { PARAM_VALUE.ROM_IO_MASK } {
+	# Procedure called to validate ROM_IO_MASK
 	return true
 }
 
@@ -199,5 +209,25 @@ proc update_MODELPARAM_VALUE.C_S_AXI_RUSER_WIDTH { MODELPARAM_VALUE.C_S_AXI_RUSE
 proc update_MODELPARAM_VALUE.C_S_AXI_BUSER_WIDTH { MODELPARAM_VALUE.C_S_AXI_BUSER_WIDTH PARAM_VALUE.C_S_AXI_BUSER_WIDTH } {
 	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
 	set_property value [get_property value ${PARAM_VALUE.C_S_AXI_BUSER_WIDTH}] ${MODELPARAM_VALUE.C_S_AXI_BUSER_WIDTH}
+}
+
+proc update_MODELPARAM_VALUE.NUM_ROMS { MODELPARAM_VALUE.NUM_ROMS PARAM_VALUE.NUM_ROMS } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.NUM_ROMS}] ${MODELPARAM_VALUE.NUM_ROMS}
+}
+
+proc update_MODELPARAM_VALUE.NUM_RAM_ROWS { MODELPARAM_VALUE.NUM_RAM_ROWS PARAM_VALUE.NUM_RAM_ROWS } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.NUM_RAM_ROWS}] ${MODELPARAM_VALUE.NUM_RAM_ROWS}
+}
+
+proc update_MODELPARAM_VALUE.NUM_RAM_COLS { MODELPARAM_VALUE.NUM_RAM_COLS PARAM_VALUE.NUM_RAM_COLS } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.NUM_RAM_COLS}] ${MODELPARAM_VALUE.NUM_RAM_COLS}
+}
+
+proc update_MODELPARAM_VALUE.ROM_IO_MASK { MODELPARAM_VALUE.ROM_IO_MASK PARAM_VALUE.ROM_IO_MASK } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.ROM_IO_MASK}] ${MODELPARAM_VALUE.ROM_IO_MASK}
 }
 
