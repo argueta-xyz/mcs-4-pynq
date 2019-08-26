@@ -612,7 +612,7 @@
 
   // Add user logic here
   assign dbg_addr  = mem_address;
-  assign dbg_wdata = S_AXI_WDATA[(mem_byte_index*8+7) -: 8]
+  assign dbg_wdata = S_AXI_WDATA[7:0]; // TODO(argueta): Fix to byte select
   assign dbg_wen   = axi_wready && S_AXI_WVALID;
   // User logic ends
 

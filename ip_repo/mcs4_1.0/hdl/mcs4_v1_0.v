@@ -145,38 +145,41 @@
   );
 
   // Add user logic here
-  logic cm_rom, cl_rom;
-  mcs4::char_t cm_ram;
-  logic sync;
-  mcs4::char_t [NUM_RAM_COLS*NUM_RAM_ROWS-1:0] d_ramchip;
-  mcs4::char_t [NUM_RAM_COLS*NUM_RAM_ROWS-1:0] d_ramchip_bus;
-  mcs4::char_t [NUM_RAM_COLS*NUM_RAM_ROWS-1:0] io_ramchip_out;
-  mcs4::char_t [NUM_ROMS-1:0] d_romchip;
-  mcs4::char_t [NUM_ROMS-1:0] d_romchip_bus;
-  mcs4::char_t d_cpu, d_ram, d_rom;
+  wire cm_rom, cl_rom;
+  wire [3:0] cm_ram;
+  wire sync;
+  wire [NUM_RAM_COLS*NUM_RAM_ROWS*4-1:0] d_ramchip;
+  wire [NUM_RAM_COLS*NUM_RAM_ROWS*4-1:0] d_ramchip_bus;
+  wire [NUM_RAM_COLS*NUM_RAM_ROWS*4-1:0] io_ramchip_out;
+  wire [NUM_ROMS*4-1:0] d_romchip;
+  wire [NUM_ROMS*4-1:0] d_romchip_bus;
+  wire [3:0] d_cpu;
+  wire [3:0] d_ram;
+  wire [3:0] d_rom;
 
-  mcs4::char_t d_bus;
+ wire [3:0] d_bus;
 
   assign cl_rom = 0;
-  assign d_ram = d_ramchip_bus[NUM_RAM_COLS * NUM_RAM_ROWS-1];
+  assign d_ram = d_ramchip_bus[NUM_RAM_COLS * NUM_RAM_ROWS*4-1-:4];
+  assign d_rom = d_romchip_bus[NUM_ROMS*4-1-:4];
   assign d_bus = d_cpu | d_rom | d_ram;
   assign ram_dout = io_ramchip_out;
   generate
-    for (genvar i = 0; i < NUM_ROMS; i++) begin : ROMS
+    for (genvar i = 0; i < NUM_ROMS; i=i+1) begin : ROMS
       i4001 #(
         .ROM_ID(i),
         .IO_MASK(4'b1111),
         .ROM_FILE("rom_00.hrom")
-      ) rom_0 (
-        .clk(clk),
-        .rst(rst),
+      ) rom (
+        .clk(s_axi_aclk),
+        .rst(~s_axi_aresetn),
         .sync(sync),
         .cl_rom(cl_rom),
         .cm_rom(cm_rom),
         .dbus_in(d_bus),
-        .dbus_out(d_rom[i]),
-        .io_in(rom_din[i]),
-        .io_out(rom_dout[i]),
+        .dbus_out(d_romchip[i*4+:4]),
+        .io_in(rom_din[i*4+:4]),
+        .io_out(rom_dout[i*4+:4]),
 
         .dbg_addr(dbg_addr),
         .dbg_wdata(dbg_wdata),
@@ -185,42 +188,42 @@
     end
   endgenerate
 
-  always_comb begin : proc_drom_or
-    d_romchip_bus[0] = d_romchip;
-    for (int i = 1; i < NUM_ROMS; i++) begin : ROM_BUS
-      d_romchip_bus[i] = d_romchip[i] | d_romchip_bus[i-1];
+  genvar i, j, k;
+  generate 
+    assign d_romchip_bus[3:0] = d_romchip[3:0];
+    for (i = 1; i < NUM_ROMS; i=i+1) begin : ROM_BUS
+      assign d_romchip_bus[i*4+:4] = d_romchip[i*4+:4] | d_romchip_bus[(i-1)*4+:4];
     end
-  end
+  endgenerate
 
   generate
-  for (genvar i = 0; i < NUM_RAM_ROWS; i++) begin : RAM_BANK
-    for (genvar j = 0; j < NUM_RAM_COLS; j++) begin : RAM_CHIP
-      int k = i * NUM_RAM_COLS + j;
+  for (i = 0; i < NUM_RAM_ROWS; i=i+1) begin : RAM_BANK
+    for (j = 0; j < NUM_RAM_COLS; j=j+1) begin : RAM_CHIP
       i4002 #(
         .RAM_ID(j)
       ) ram (
-        .clk(clk),
-        .rst(rst),
+        .clk(s_axi_aclk),
+        .rst(~s_axi_aresetn),
         .sync(sync),
         .cm_ram(cm_ram[i]),
         .dbus_in(d_bus),
-        .dbus_out(d_ramchip[k]),
-        .io_out(io_ramchip_out[k])
+        .dbus_out(d_ramchip[i * NUM_RAM_COLS + j+:4]),
+        .io_out(io_ramchip_out[i * NUM_RAM_COLS + j+:4])
       );
     end
   end
   endgenerate
 
-  always_comb begin : proc_dram_or
-    d_ramchip_bus[0] = d_ramchip[0];
-    for (int i = 1; i < NUM_RAM_COLS * NUM_RAM_ROWS; i++) begin : RAM_BUS
-      d_ramchip_bus[i] = d_ramchip[i] | d_ramchip_bus[i-1];
+  generate 
+    assign d_ramchip_bus[3:0] = d_ramchip[3:0];
+    for (i = 1; i < NUM_RAM_COLS * NUM_RAM_ROWS; i=i+1) begin : RAM_BUS
+      assign d_ramchip_bus[i*4+:4] = d_ramchip[i*4+:4] | d_ramchip_bus[(i-1)*4+:4];
     end
-  end
+  endgenerate
 
   i4004 cpu (
-    .clk(clk),
-    .rst(rst),
+    .clk(s_axi_aclk),
+    .rst(~s_axi_aresetn),
     .test(1'b0),
     .dbus_in(d_bus),
     .dbus_out(d_cpu),
