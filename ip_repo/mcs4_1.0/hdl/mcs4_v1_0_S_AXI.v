@@ -216,7 +216,6 @@
   //------------------------------------------------
   wire [OPT_MEM_ADDR_BITS:0] mem_address;
   wire [USER_NUM_MEM-1:0] mem_select;
-  reg [C_S_AXI_DATA_WIDTH-1:0] mem_data_out[0 : USER_NUM_MEM-1];
 
   genvar i;
   genvar j;
@@ -346,7 +345,7 @@
   // axi_wready is asserted for one S_AXI_ACLK clock cycle when both
   // S_AXI_AWVALID and S_AXI_WVALID are asserted. axi_wready is
   // de-asserted when reset is low.
-
+  reg [2:0] wbyte_count;
   always @( posedge S_AXI_ACLK )
   begin
     if ( S_AXI_ARESETN == 1'b0 )
@@ -355,7 +354,7 @@
       end
     else
       begin
-        if ( ~axi_wready && S_AXI_WVALID && axi_awv_awr_flag)
+        if ( ~axi_wready && S_AXI_WVALID && axi_awv_awr_flag && wbyte_count == 3'd0)
           begin
             // slave can accept the write data
             axi_wready <= 1'b1;
@@ -366,7 +365,18 @@
             axi_wready <= 1'b0;
           end
       end
+
+    if (S_AXI_ARESETN == 1'b0) begin
+      wbyte_count <= 3'd0;
+    end else begin
+      if(wbyte_count > 0) begin
+        wbyte_count <= wbyte_count - 3'd1;
+      end else begin
+        wbyte_count <= axi_wready? 3'd4 : 3'd0;
+      end
+    end
   end
+
   // Implement write response logic generation
 
   // The write response and response valid signals are asserted by the slave
@@ -546,63 +556,19 @@
   // -- Example code to access user logic memory region
   // ------------------------------------------
 
-  generate
-    if (USER_NUM_MEM >= 1)
-      begin
-        assign mem_select  = 1;
-        assign mem_address = (axi_arv_arr_flag? axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:(axi_awv_awr_flag? axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:0));
-      end
-  endgenerate
+  assign mem_address = (axi_arv_arr_flag? axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:(axi_awv_awr_flag? axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:0));
+  wire mem_rden;
+  wire mem_wren;
 
-  // implement Block RAM(s)
-  generate
-    for(i=0; i<= USER_NUM_MEM-1; i=i+1)
-      begin:BRAM_GEN
-        wire mem_rden;
-        wire mem_wren;
+  assign mem_wren = axi_wready && S_AXI_WVALID ;
+  assign mem_rden = axi_arv_arr_flag ; //& ~axi_rvalid
 
-        assign mem_wren = axi_wready && S_AXI_WVALID ;
-
-        assign mem_rden = axi_arv_arr_flag ; //& ~axi_rvalid
-
-        for(mem_byte_index=0; mem_byte_index<= (C_S_AXI_DATA_WIDTH/8-1); mem_byte_index=mem_byte_index+1)
-        begin:BYTE_BRAM_GEN
-          wire [8-1:0] data_in ;
-          wire [8-1:0] data_out;
-          reg  [8-1:0] byte_ram [0 : 255];
-          integer  j;
-
-          //assigning 8 bit data
-          assign data_in  = S_AXI_WDATA[(mem_byte_index*8+7) -: 8];
-          assign data_out = byte_ram[mem_address];
-
-          always @( posedge S_AXI_ACLK )
-          begin
-            if (mem_wren && S_AXI_WSTRB[mem_byte_index])
-              begin
-                byte_ram[mem_address] <= data_in;
-              end
-          end
-
-          always @( posedge S_AXI_ACLK )
-          begin
-            if (mem_rden)
-              begin
-                mem_data_out[i][(mem_byte_index*8+7) -: 8] <= data_out;
-              end
-          end
-
-      end
-    end
-  endgenerate
-  //Output register or memory read data
-
-  always @( mem_data_out, axi_rvalid)
+  always @(axi_rvalid)
   begin
     if (axi_rvalid)
       begin
         // Read address mux
-        axi_rdata <= mem_data_out[0];
+        axi_rdata <= 32'hDEADBEEF;
       end
     else
       begin
@@ -611,9 +577,12 @@
   end
 
   // Add user logic here
-  assign dbg_addr  = mem_address;
-  assign dbg_wdata = S_AXI_WDATA[7:0]; // TODO(argueta): Fix to byte select
-  assign dbg_wen   = axi_wready && S_AXI_WVALID;
+  assign dbg_addr  = {mem_address[11:2], (wbyte_count - 1)[1:0]};
+  assign dbg_wdata = wbyte_count == 3'd4 ? S_AXI_WDATA[31:24]:
+                     wbyte_count == 3'd3 ? S_AXI_WDATA[23:16]:
+                     wbyte_count == 3'd2 ? S_AXI_WDATA[15: 8]:
+                     wbyte_count == 3'd1 ? S_AXI_WDATA[ 7: 0]: 8'h0;
+  assign dbg_wen   = wbyte_count > 0;
   // User logic ends
 
   endmodule
