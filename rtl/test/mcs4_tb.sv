@@ -12,7 +12,8 @@ module mcs4_tb #(
 
   input  mcs4::char_t [2:0] dbg_addr,
   input  mcs4::byte_t       dbg_wdata,
-  input                     dbg_wen
+  input                     dbg_wen,
+  output mcs4::byte_t       dbg_rdata
 );
 
   logic cm_rom, cl_rom;
@@ -31,13 +32,46 @@ module mcs4_tb #(
   assign d_bus = d_cpu | d_rom[0] | d_rom[1] | d_ram;
   assign io_ram_out = io_ramchip_out[0];
 
+  wire cpu_rst, rom_rst, ram_rst;
+  wire mcs4::addr_t rom_addr;
+  wire mcs4::byte_t rom_wdata;
+  wire              rom_wen;
+  wire mcs4::addr_t pc;
+  wire mcs4::instr_t instr;
+  wire mcs4::char_t [mcs4::Num_regs-1:0] idx_reg;
+  dbg_ctl dbg_ctl (
+    .clk      (clk),
+    .rst      (rst),
+
+    // AXI slave connections
+    .dbg_addr (dbg_addr),
+    .dbg_wen  (dbg_wen),
+    .dbg_wdata(dbg_wdata),
+    .dbg_rdata(dbg_rdata),
+
+    // ROM access
+    .rom_addr (rom_addr),
+    .rom_wdata(rom_wdata),
+    .rom_wen  (rom_wen),
+
+    // Reset Control
+    .cpu_rst  (cpu_rst),
+    .rom_rst  (rom_rst),
+    .ram_rst  (ram_rst),
+
+    // CPU Debug
+    .pc       (pc),
+    .instr    (instr),
+    .idx_reg  (idx_reg)
+  );
+
   i4001 #(
     .ROM_ID(4'b0000),
     .IO_MASK(4'b1111),
     .ROM_FILE("rom_00.hrom")
   ) rom_0 (
     .clk(clk),
-    .rst(rst),
+    .rst(rom_rst),
     .sync(sync),
     .cl_rom(cl_rom),
     .cm_rom(cm_rom),
@@ -46,9 +80,9 @@ module mcs4_tb #(
     .io_in(io_in[0]),
     .io_out(io_rom_out[0]),
 
-    .dbg_addr(dbg_addr),
-    .dbg_wdata(dbg_wdata),
-    .dbg_wen(dbg_wen)
+    .dbg_addr(rom_addr),
+    .dbg_wdata(rom_wdata),
+    .dbg_wen(rom_wen)
   );
 
   i4001 #(
@@ -57,7 +91,7 @@ module mcs4_tb #(
     .ROM_FILE("rom_00.hrom")
   ) rom_1 (
     .clk(clk),
-    .rst(rst),
+    .rst(rom_rst),
     .sync(sync),
     .cl_rom(cl_rom),
     .cm_rom(cm_rom),
@@ -79,7 +113,7 @@ module mcs4_tb #(
         .RAM_ID(j)
       ) ram (
         .clk(clk),
-        .rst(rst),
+        .rst(ram_rst),
         .sync(sync),
         .cm_ram(cm_ram[i]),
         .dbus_in(d_bus),
@@ -99,13 +133,17 @@ module mcs4_tb #(
 
   i4004 cpu (
     .clk(clk),
-    .rst(rst),
+    .rst(cpu_rst),
     .test(1'b0),
     .dbus_in(d_bus),
     .dbus_out(d_cpu),
     .sync(sync),
     .cm_rom(cm_rom),
-    .cm_ram (cm_ram)
+    .cm_ram (cm_ram),
+
+    .dbg_pc(pc),
+    .dbg_instr(instr),
+    .dbg_idx_reg(idx_reg)
   );
 
 endmodule

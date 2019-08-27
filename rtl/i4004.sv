@@ -1,12 +1,16 @@
 module i4004 (
-  input         clk,
-  input         rst,
-  input         test,
+  input               clk,
+  input               rst,
+  input               test,
   input  mcs4::char_t dbus_in,
   output mcs4::char_t dbus_out,
-  output logic  sync,
-  output logic  cm_rom,
-  output mcs4::char_t cm_ram
+  output logic        sync,
+  output logic        cm_rom,
+  output mcs4::char_t cm_ram,
+
+  output mcs4::addr_t              dbg_pc,
+  output mcs4::instr_t             dbg_instr,
+  output mcs4::char_t [mcs4::Num_regs-1:0] dbg_idx_reg
 );
 
 // Timing generation
@@ -261,13 +265,13 @@ end
 logic jump_condition;
 always_comb begin : proc_jump_cond
   if(ird_cond[0]) begin
-    jump_condition <= ird_cond[1] && (accum != 0) ||
-                      ird_cond[2] && (carry == 0) ||
-                      ird_cond[3] && (test == 1);
+    jump_condition = ird_cond[1] && (accum != 0) ||
+                     ird_cond[2] && (carry == 0) ||
+                     ird_cond[3] && (test == 1);
   end else begin
-    jump_condition <= ird_cond[1] && (accum == 0) ||
-                      ird_cond[2] && (carry == 1) ||
-                      ird_cond[3] && (test == 0);
+    jump_condition = ird_cond[1] && (accum == 0) ||
+                     ird_cond[2] && (carry == 1) ||
+                     ird_cond[3] && (test == 0);
   end
 end
 always_ff @(posedge clk) begin : proc_next_pc
@@ -478,5 +482,10 @@ always_ff @(posedge clk) begin : proc_cm_ram
     end
   end
 end
+
+// DEBUG
+assign dbg_pc = pc;
+assign dbg_instr = instr;
+assign dbg_idx_reg = idx_reg;
 
 endmodule

@@ -8,6 +8,10 @@
 #include "verilated.h"
 using namespace std;
 
+#define CTL_BASE_ADDR 0x0000
+#define ROM_BASE_ADDR 0x1000
+#define RAM_BASE_ADDR 0x2000
+
 vector<int> parseRom(string filename) {
     // Parse ROM file
     vector<int> rom_bytes;
@@ -46,19 +50,34 @@ vector<int> parseRom(string filename) {
     return rom_bytes;
 }
 
+void debugWrite(TESTBENCH<Vmcs4_tb>* tb, int addr, int wdata) {
+    tb->m_core->dbg_wen = 1;
+    tb->m_core->dbg_addr  = addr;
+    tb->m_core->dbg_wdata = wdata;
+    tb->tick();
+    tb->m_core->dbg_wen = 0;
+}
+
+int debugRead(TESTBENCH<Vmcs4_tb>* tb, int addr) {
+    tb->m_core->dbg_wen = 0;
+    tb->m_core->dbg_addr  = addr;
+    tb->m_core->dbg_wdata = 0;
+    tb->tick();
+    return tb->m_core->dbg_rdata;
+}
+
 void initMemory(TESTBENCH<Vmcs4_tb>* tb, vector<int> rom_bytes) {
     // Write ROMs while in reset
-    tb->m_core->rst = 1;
-    tb->m_core->dbg_wen = 1;
+    tb->reset();
     for (int addr = 0; addr < rom_bytes.size(); addr++) {
-        tb->m_core->dbg_addr  = addr;
-        tb->m_core->dbg_wdata = rom_bytes[addr];
-        tb->tick();
+        debugWrite(tb, ROM_BASE_ADDR | addr, rom_bytes[addr]);
     }
-    tb->m_core->dbg_wen = 0;
     tb->tick();
-    tb->m_core->rst = 0;
     cout << "Done initializing " << dec << rom_bytes.size() << " bytes" << endl;
+}
+
+void setResets(TESTBENCH<Vmcs4_tb>* tb, int cpu, int rom, int ram) {
+    debugWrite(tb, CTL_BASE_ADDR | 0x0, ram << 8 | rom << 4 | cpu);
 }
 
 int main(int argc, char **argv, char** env) {
@@ -76,10 +95,12 @@ int main(int argc, char **argv, char** env) {
 
     vector<int> rom_bytes;
     rom_bytes = parseRom("rom_00.hrom");
+    tb->reset();
+
     initMemory(tb, rom_bytes);
+    setResets(tb, 0, 0, 0);
 
     cout << "Tick #" << time << " [START]" << endl;
-    tb->reset();
     ports->io_in = 0x09;
     // Tick the clock until we are done
     while(time < timeout && !tb->done()) {

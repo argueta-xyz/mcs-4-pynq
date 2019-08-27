@@ -82,6 +82,7 @@
 // Instantiation of Axi Bus Interface S_AXI
   wire [11:0] dbg_addr;
   wire [3:0]  dbg_wdata;
+  wire [3:0]  dbg_rdata;
   wire        dbg_wen;
   mcs4_v1_0_S_AXI # (
     .C_S_AXI_ID_WIDTH(C_S_AXI_ID_WIDTH),
@@ -142,7 +143,8 @@
 
     .dbg_addr      (dbg_addr),
     .dbg_wdata     (dbg_wdata),
-    .dbg_wen       (dbg_wen)
+    .dbg_wen       (dbg_wen),
+    .dbg_rdata     (dbg_rdata)
   );
 
   // Add user logic here
@@ -158,7 +160,57 @@
   wire [3:0] d_ram;
   wire [3:0] d_rom;
 
- wire [3:0] d_bus;
+  wire [3:0] d_bus;
+  wire cpu_rst, rom_rst, ram_rst;
+  wire [11:0] rom_addr;
+  wire [7:0]  rom_wdata;
+  wire        rom_wen;
+  wire [11:0] pc;
+  wire [11:0] instr;
+  wire [63:0] idx_reg;
+  dbg_ctl dbg_ctl (
+    .clk      (s_axi_aclk),
+    .rst      (~s_axi_aresetn),
+
+    // AXI slave connections
+    .dbg_addr (dbg_addr),
+    .dbg_wen  (dbg_wen),
+    .dbg_wdata(dbg_wdata),
+    .dbg_rdata(dbg_rdata),
+
+    // ROM access
+    .rom_addr (rom_addr),
+    .rom_wdata(rom_wdata),
+    .rom_wen  (rom_wen),
+
+    // Reset Control
+    .cpu_rst  (cpu_rst),
+    .rom_rst  (rom_rst),
+    .ram_rst  (ram_rst),
+
+    // CPU Debug
+    .pc       (pc),
+    .instr    (instr),
+    .idx_reg  (idx_reg)
+  );
+
+  `define DBG_SEGMENT_MASK 14'h3000
+  `define DBG_CTL_SEG_ADDR 14'h0000
+  `define DBG_ROM_SEG_ADDR 14'h1000
+  `define DBG_RAM_SEG_ADDR 14'h2000
+  reg mcs4_rst;
+  wire dbg_ctl_sel, dbg_rom_sel, dbg_ram_sel;
+  always @(posedge clk) begin : proc_mcs4_rst
+    if(~s_axi_aresetn) begin
+      mcs4_rst <= 1;
+    end else begin
+      mcs4_rst <= dbg_wen && dbg_ctl_sel && dbg_addr == ;
+    end
+  end
+
+  assign dbg_ctl_sel = dbg_addr & `DBG_SEGMENT_MASK == `DBG_CTL_SEG_ADDR;
+  assign dbg_rom_sel = dbg_addr & `DBG_SEGMENT_MASK == `DBG_ROM_SEG_ADDR;
+  assign dbg_ram_sel = dbg_addr & `DBG_SEGMENT_MASK == `DBG_RAM_SEG_ADDR;
 
   assign cl_rom = 0;
   assign d_ram = d_ramchip_bus[NUM_RAM_COLS * NUM_RAM_ROWS*4-1-:4];
@@ -173,7 +225,7 @@
         .ROM_FILE("rom_00.hrom")
       ) rom (
         .clk(s_axi_aclk),
-        .rst(~s_axi_aresetn),
+        .rst(rom_rst),
         .sync(sync),
         .cl_rom(cl_rom),
         .cm_rom(cm_rom),
@@ -182,15 +234,15 @@
         .io_in(rom_din[i*4+:4]),
         .io_out(rom_dout[i*4+:4]),
 
-        .dbg_addr(dbg_addr),
-        .dbg_wdata(dbg_wdata),
-        .dbg_wen(dbg_wen)
+        .dbg_addr(rom_addr),
+        .dbg_wdata(rom_wdata),
+        .dbg_wen(rom_wen)
       );
     end
   endgenerate
 
   genvar i, j, k;
-  generate 
+  generate
     assign d_romchip_bus[3:0] = d_romchip[3:0];
     for (i = 1; i < NUM_ROMS; i=i+1) begin : ROM_BUS
       assign d_romchip_bus[i*4+:4] = d_romchip[i*4+:4] | d_romchip_bus[(i-1)*4+:4];
@@ -204,7 +256,7 @@
         .RAM_ID(j)
       ) ram (
         .clk(s_axi_aclk),
-        .rst(~s_axi_aresetn),
+        .rst(ram_rst),
         .sync(sync),
         .cm_ram(cm_ram[i]),
         .dbus_in(d_bus),
@@ -215,7 +267,7 @@
   end
   endgenerate
 
-  generate 
+  generate
     assign d_ramchip_bus[3:0] = d_ramchip[3:0];
     for (i = 1; i < NUM_RAM_COLS * NUM_RAM_ROWS; i=i+1) begin : RAM_BUS
       assign d_ramchip_bus[i*4+:4] = d_ramchip[i*4+:4] | d_ramchip_bus[(i-1)*4+:4];
@@ -224,13 +276,17 @@
 
   i4004 cpu (
     .clk(s_axi_aclk),
-    .rst(~s_axi_aresetn),
+    .rst(cpu_rst),
     .test(1'b0),
     .dbus_in(d_bus),
     .dbus_out(d_cpu),
     .sync(sync),
     .cm_rom(cm_rom),
-    .cm_ram (cm_ram)
+    .cm_ram(cm_ram),
+
+    .dbg_pc(pc),
+    .dbg_instr(instr),
+    .dbg_idx_reg(idx_reg)
   );
   // User logic ends
 
