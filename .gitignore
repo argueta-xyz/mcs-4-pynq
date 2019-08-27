@@ -195,6 +195,10 @@ obj_dir/
 !*.bmm
 !*.xmp
 
+*.runs/
+*.cache/
+*.tmp/
+
 # End of https://www.gitignore.io/api/python,xilinxvivado
 
 ###########################################################################
