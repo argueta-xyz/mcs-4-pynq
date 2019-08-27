@@ -173,8 +173,8 @@ obj_dir/
 !*.mem
 #Project files
 #XPR  +  *.XML ? XPR (Files are merged into a single XPR file for 2014.1 version)
-#Do NOT ignore *.xpr files
-!*.xpr
+#Ignore *.xpr files, write out TCL instead
+*.xpr
 #Include *.xml files for 2013.4 or earlier version
 !*.xml
 #Constraint files
@@ -198,6 +198,9 @@ obj_dir/
 *.runs/
 *.cache/
 *.tmp/
+*.srcs/
+*.hw/
+NA/
 
 # End of https://www.gitignore.io/api/python,xilinxvivado
 
