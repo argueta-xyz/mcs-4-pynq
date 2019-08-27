@@ -35,8 +35,7 @@ always_ff @(posedge clk) begin : proc_rst
       dbg::Ctl_sys_rst_addr:       dbg_rdata <= {3'd0, ram_rst, 3'd0, rom_rst, 3'd0, cpu_rst};
       dbg::Ctl_cpu_pc_lo_addr:     dbg_rdata <= pc[7:0];
       dbg::Ctl_cpu_pc_hi_addr:     dbg_rdata <= {4'h0, pc[11:8]};
-      dbg::Ctl_cpu_instr_lo_addr:  dbg_rdata <= instr[7:0];
-      dbg::Ctl_cpu_instr_hi_addr:  dbg_rdata <= {4'h0, instr[11:8]};
+      dbg::Ctl_cpu_instr_addr:     dbg_rdata <= instr;
       dbg::Ctl_cpu_idxreg_p0_addr: dbg_rdata <= {idx_reg[0], idx_reg[1]};
       dbg::Ctl_cpu_idxreg_p1_addr: dbg_rdata <= {idx_reg[2], idx_reg[3]};
       dbg::Ctl_cpu_idxreg_p2_addr: dbg_rdata <= {idx_reg[4], idx_reg[5]};

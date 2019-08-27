@@ -194,23 +194,7 @@
     .idx_reg  (idx_reg)
   );
 
-  `define DBG_SEGMENT_MASK 14'h3000
-  `define DBG_CTL_SEG_ADDR 14'h0000
-  `define DBG_ROM_SEG_ADDR 14'h1000
-  `define DBG_RAM_SEG_ADDR 14'h2000
-  reg mcs4_rst;
-  wire dbg_ctl_sel, dbg_rom_sel, dbg_ram_sel;
-  always @(posedge clk) begin : proc_mcs4_rst
-    if(~s_axi_aresetn) begin
-      mcs4_rst <= 1;
-    end else begin
-      mcs4_rst <= dbg_wen && dbg_ctl_sel && dbg_addr == ;
-    end
-  end
 
-  assign dbg_ctl_sel = dbg_addr & `DBG_SEGMENT_MASK == `DBG_CTL_SEG_ADDR;
-  assign dbg_rom_sel = dbg_addr & `DBG_SEGMENT_MASK == `DBG_ROM_SEG_ADDR;
-  assign dbg_ram_sel = dbg_addr & `DBG_SEGMENT_MASK == `DBG_RAM_SEG_ADDR;
 
   assign cl_rom = 0;
   assign d_ram = d_ramchip_bus[NUM_RAM_COLS * NUM_RAM_ROWS*4-1-:4];

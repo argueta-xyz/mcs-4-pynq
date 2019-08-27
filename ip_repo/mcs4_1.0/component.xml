@@ -402,10 +402,6 @@
           <spirit:value spirit:id="BUSIFPARAM_VALUE.S_AXI_ACLK.ASSOCIATED_RESET">s_axi_aresetn</spirit:value>
         </spirit:parameter>
         <spirit:parameter>
-          <spirit:name>FREQ_HZ</spirit:name>
-          <spirit:value spirit:id="BUSIFPARAM_VALUE.S_AXI_ACLK.FREQ_HZ">300000000</spirit:value>
-        </spirit:parameter>
-        <spirit:parameter>
           <spirit:name>ASSOCIATED_BUSIF</spirit:name>
           <spirit:description>s_axi</spirit:description>
           <spirit:value spirit:id="BUSIFPARAM_VALUE.S_AXI_ACLK.ASSOCIATED_BUSIF">S_AXI</spirit:value>
@@ -515,7 +511,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>5a9a7d4a</spirit:value>
+            <spirit:value>17d5ea61</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -531,7 +527,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>5a9a7d4a</spirit:value>
+            <spirit:value>17d5ea61</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -695,7 +691,7 @@
         <spirit:wire>
           <spirit:direction>in</spirit:direction>
           <spirit:vector>
-            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_S_AXI_ADDR_WIDTH&apos;)) - 1)">11</spirit:left>
+            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_S_AXI_ADDR_WIDTH&apos;)) - 1)">13</spirit:left>
             <spirit:right spirit:format="long">0</spirit:right>
           </spirit:vector>
           <spirit:wireTypeDefs>
@@ -1122,7 +1118,7 @@
         <spirit:wire>
           <spirit:direction>in</spirit:direction>
           <spirit:vector>
-            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_S_AXI_ADDR_WIDTH&apos;)) - 1)">11</spirit:left>
+            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_S_AXI_ADDR_WIDTH&apos;)) - 1)">13</spirit:left>
             <spirit:right spirit:format="long">0</spirit:right>
           </spirit:vector>
           <spirit:wireTypeDefs>
@@ -1467,7 +1463,7 @@
         <spirit:name>C_S_AXI_ADDR_WIDTH</spirit:name>
         <spirit:displayName>C S AXI ADDR WIDTH</spirit:displayName>
         <spirit:description>Width of S_AXI address bus</spirit:description>
-        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.C_S_AXI_ADDR_WIDTH" spirit:order="5" spirit:rangeType="long">12</spirit:value>
+        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.C_S_AXI_ADDR_WIDTH" spirit:order="5" spirit:rangeType="long">14</spirit:value>
       </spirit:modelParameter>
       <spirit:modelParameter spirit:dataType="integer">
         <spirit:name>C_S_AXI_AWUSER_WIDTH</spirit:name>
@@ -1551,9 +1547,17 @@
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>../../rtl/dbg_pkg.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../../rtl/mcs4_pkg.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../../rtl/dbg_ctl.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
         <spirit:name>../../rtl/i4001.sv</spirit:name>
@@ -1573,7 +1577,7 @@
       <spirit:file>
         <spirit:name>hdl/mcs4_v1_0.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_b5faaf3f</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_e8917306</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1583,9 +1587,17 @@
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>../../rtl/dbg_pkg.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../../rtl/mcs4_pkg.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../../rtl/dbg_ctl.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
         <spirit:name>../../rtl/i4001.sv</spirit:name>
@@ -1688,7 +1700,7 @@
       <spirit:name>C_S_AXI_ADDR_WIDTH</spirit:name>
       <spirit:displayName>C S AXI ADDR WIDTH</spirit:displayName>
       <spirit:description>Width of S_AXI address bus</spirit:description>
-      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_S_AXI_ADDR_WIDTH" spirit:order="5" spirit:minimum="12" spirit:maximum="32" spirit:rangeType="long">12</spirit:value>
+      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_S_AXI_ADDR_WIDTH" spirit:order="5" spirit:minimum="14" spirit:maximum="32" spirit:rangeType="long">14</spirit:value>
       <spirit:vendorExtensions>
         <xilinx:parameterInfo>
           <xilinx:enablement>
@@ -1797,14 +1809,14 @@
         <xilinx:taxonomy>/AXI_Peripheral</xilinx:taxonomy>
         <xilinx:taxonomy>/Embedded_Processing/Processor</xilinx:taxonomy>
       </xilinx:taxonomies>
-      <xilinx:displayName>mcs4</xilinx:displayName>
-      <xilinx:vendorDisplayName>Argueta [XYZ]</xilinx:vendorDisplayName>
+      <xilinx:displayName>Intel MCS-4 Micro Computer System</xilinx:displayName>
+      <xilinx:vendorDisplayName>Argueta[XYZ]</xilinx:vendorDisplayName>
       <xilinx:vendorURL>https://argueta.xyz</xilinx:vendorURL>
-      <xilinx:coreRevision>10</xilinx:coreRevision>
+      <xilinx:coreRevision>13</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>xilinx.com:user:mcs4:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2019-08-26T05:06:04Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2019-08-27T05:22:13Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@fc91816_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@6e292479_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
@@ -1942,16 +1954,74 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@1f5f6887_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@36b39020_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@403d970_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2961a64a_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@26d4165b_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@76b0eaea_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@ba65c15_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1da4563e_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@40b4ad35_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@61702e21_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2f847692_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@595b1c5b_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@603e4857_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5d26081d_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@723bf3be_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2eea9e08_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@32aa9094_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@392daaeb_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@641f5f38_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7e65415b_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@88bc0fe_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@410decc3_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@36f0c8f9_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4d97a254_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@71ff5e08_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@211b7519_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@65a9ebdc_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3630fe34_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@bbc9236_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6dd5ec3a_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4e915493_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@669656d0_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7d6b10db_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2e54f068_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@322eb0fe_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7570996_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@268cceb3_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5cfcb544_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@36374b72_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3536e12b_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@35cc13e4_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@39c60660_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1735ba38_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@495d4aff_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1796c70a_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@468eaacf_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@45d5cf2_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@25e9228c_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@64c8e87c_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@70f53105_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@253f35e6_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5f127117_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6040234_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@d97155a_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3030ab2f_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@622d1056_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6ce260cd_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4ee67473_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6e2c48bb_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@8b9d471_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4d77a64f_ARCHIVE_LOCATION">c:/Users/admin/Documents/GitHub/mcs-4-pynq/ip_repo/mcs4_1.0</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2019.1</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="9339460a"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="0ed8fc7f"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="b21e5c16"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="201022b0"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="8f3cf577"/>
-      <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="610bb378"/>
-      <xilinx:checksum xilinx:scope="parameters" xilinx:value="2d1caa6d"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="22d25d88"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="a19aee35"/>
+      <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="0886d57c"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="f6cab9b0"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>
 </spirit:component>
