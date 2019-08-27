@@ -185,8 +185,8 @@ add_files -norecurse -fileset $obj $files
 # Add local files from the original project (-no_copy_sources specified)
 source [file normalize "${origin_dir}/mcs4pynq.bd.tcl"]
 set files [list \
- [file normalize "${origin_dir}/mcs4pynq.srcs/sources_1/bd/mcs4pynq/mcs4pynq.bd" ]\
- [file normalize "${origin_dir}/mcs4pynq.srcs/sources_1/bd/mcs4pynq/hdl/mcs4pynq_wrapper.v" ]\
+ [file normalize "${origin_dir}/mcs4pynq/mcs4pynq.srcs/sources_1/bd/mcs4pynq/mcs4pynq.bd" ]\
+ [file normalize "${origin_dir}/mcs4pynq/mcs4pynq.srcs/sources_1/bd/mcs4pynq/hdl/mcs4pynq_wrapper.v" ]\
 ]
 set added_files [add_files -fileset sources_1 $files]
 
