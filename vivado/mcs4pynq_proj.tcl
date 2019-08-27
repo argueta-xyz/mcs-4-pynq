@@ -184,6 +184,10 @@ add_files -norecurse -fileset $obj $files
 
 # Add local files from the original project (-no_copy_sources specified)
 source [file normalize "${origin_dir}/mcs4pynq.bd.tcl"]
+make_wrapper -files [get_files "${origin_dir}/mcs4pynq/mcs4pynq.srcs/sources_1/bd/mcs4pynq/mcs4pynq.bd"] -top
+add_files -norecurse "${origin_dir}/mcs4pynq/mcs4pynq.srcs/sources_1/bd/mcs4pynq/hdl/mcs4pynq_wrapper.v"
+update_compile_order -fileset sources_1
+
 set files [list \
  [file normalize "${origin_dir}/mcs4pynq/mcs4pynq.srcs/sources_1/bd/mcs4pynq/mcs4pynq.bd" ]\
  [file normalize "${origin_dir}/mcs4pynq/mcs4pynq.srcs/sources_1/bd/mcs4pynq/hdl/mcs4pynq_wrapper.v" ]\
