@@ -27,12 +27,12 @@ always_ff @(posedge clk) begin : proc_rst
   end else if(dbg_addr.seg == dbg::CTL) begin
     if(dbg_wen) begin
       case (dbg_addr.addr)
-        dbg::Ctl_sys_rst_addr: {ram_rst, rom_rst, cpu_rst} <= {dbg_wdata[8], dbg_wdata[4], dbg_wdata[0]};
+        dbg::Ctl_sys_rst_addr: {ram_rst, rom_rst, cpu_rst} <= dbg_wdata[2:0];
         default : ;
       endcase
     end
     case (dbg_addr.addr)
-      dbg::Ctl_sys_rst_addr:       dbg_rdata <= {3'd0, ram_rst, 3'd0, rom_rst, 3'd0, cpu_rst};
+      dbg::Ctl_sys_rst_addr:       dbg_rdata <= {5'd0, ram_rst, rom_rst, cpu_rst};
       dbg::Ctl_cpu_pc_lo_addr:     dbg_rdata <= pc[7:0];
       dbg::Ctl_cpu_pc_hi_addr:     dbg_rdata <= {4'h0, pc[11:8]};
       dbg::Ctl_cpu_instr_addr:     dbg_rdata <= instr;

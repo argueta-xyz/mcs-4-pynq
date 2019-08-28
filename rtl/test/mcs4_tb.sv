@@ -10,7 +10,7 @@ module mcs4_tb #(
   output mcs4::char_t [1:0] io_rom_out,
   output mcs4::char_t       io_ram_out,
 
-  input  mcs4::char_t [2:0] dbg_addr,
+  input  dbg::addr_t        dbg_addr,
   input  mcs4::byte_t       dbg_wdata,
   input                     dbg_wen,
   output mcs4::byte_t       dbg_rdata
@@ -100,9 +100,9 @@ module mcs4_tb #(
     .io_in(io_in[1]),
     .io_out(io_rom_out[1]),
 
-    .dbg_addr(dbg_addr),
-    .dbg_wdata(dbg_wdata),
-    .dbg_wen(dbg_wen)
+    .dbg_addr(rom_addr),
+    .dbg_wdata(rom_wdata),
+    .dbg_wen(rom_wen)
   );
 
   generate
