@@ -1543,7 +1543,7 @@
     <spirit:fileSet>
       <spirit:name>xilinx_verilogsynthesis_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>hdl/mcs4_v1_0_S_AXI.v</spirit:name>
+        <spirit:name>../../../rtl/mcs4_sys_s_axi.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -1575,7 +1575,7 @@
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/mcs4_v1_0.v</spirit:name>
+        <spirit:name>../../../rtl/mcs4_sys.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
         <spirit:userFileType>CHECKSUM_e8917306</spirit:userFileType>
       </spirit:file>
@@ -1583,7 +1583,7 @@
     <spirit:fileSet>
       <spirit:name>xilinx_verilogbehavioralsimulation_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>hdl/mcs4_v1_0_S_AXI.v</spirit:name>
+        <spirit:name>../../../rtl/mcs4_sys_s_axi.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -1615,7 +1615,7 @@
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/mcs4_v1_0.v</spirit:name>
+        <spirit:name>../../../rtl/mcs4_sys.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
     </spirit:fileSet>
