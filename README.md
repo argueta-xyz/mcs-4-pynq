@@ -22,7 +22,7 @@ All TCL scripts necessary to inflate a BlockDesign and Vivado Project to synthes
 ### Simulation
 ```bash
 cd sim/
-make ROM=../roms/fibonacci_rand.asm
+make axi ROM=../roms/fibonacci_rand.asm
 gtkwave obj_dir/simx.fst &
 ```
 | ROM | Function |
