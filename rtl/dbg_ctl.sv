@@ -51,7 +51,7 @@ end
 
 assign rom_addr  = dbg_addr.addr;
 assign rom_wdata = dbg_wdata;
-assign rom_wen   = dbg_addr.seg == dbg::ROM;
+assign rom_wen   = dbg_wen && dbg_addr.seg == dbg::ROM;
 
 // assign ram_addr  = dbg_addr.addr;
 // assign ram_wdata = dbg_wdata;
