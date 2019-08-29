@@ -43,6 +43,7 @@ public:
 		// Make sure any inheritance gets applied
 		this->tick();
 		m_core->rst = 0;
+		this->tick();
 	}
 
 	virtual void tick(void) {
