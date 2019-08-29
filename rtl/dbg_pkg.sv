@@ -10,7 +10,7 @@ package dbg;
     CTL  = 2'd0,
     ROM  = 2'd1,
     RAM  = 2'd2,
-    RSVD = 2'd3
+    IO   = 2'd3
   } seg_t;
 
   typedef logic [Debug_segment_addr_width-1:0] seg_addr_t;
@@ -32,5 +32,11 @@ package dbg;
   localparam Ctl_cpu_idxreg_p5_addr  = 12'h000D;
   localparam Ctl_cpu_idxreg_p6_addr  = 12'h000E;
   localparam Ctl_cpu_idxreg_p7_addr  = 12'h000F;
+
+  localparam Io_rom_base_addr = 12'h000;
+  localparam Io_rom_high_addr = 12'h007;
+  localparam Io_ram_base_addr = 12'h010;
+  localparam Io_ram_high_addr = 12'h017;
+  localparam Io_addr_mask     = 12'hFF8;
 
 endpackage : dbg

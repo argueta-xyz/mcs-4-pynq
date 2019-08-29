@@ -12,6 +12,7 @@ using namespace std;
 #define CTL_BASE_ADDR 0x0000
 #define ROM_BASE_ADDR 0x1000
 #define RAM_BASE_ADDR 0x2000
+#define IO_BASE_ADDR  0x3000
 
 vector<int> parseRom(string filename) {
     // Parse ROM file
@@ -147,10 +148,14 @@ void getCpuInfo(TESTBENCH<Vmcs4_sys_tb>* tb) {
     int instr_pc = axiRead(tb, CTL_BASE_ADDR | 0x4);
     int idxr_07 = axiRead(tb, CTL_BASE_ADDR | 0x8);
     int idxr_8F = axiRead(tb, CTL_BASE_ADDR | 0xC);
+    int rom_out = axiRead(tb, IO_BASE_ADDR | 0x0);
+    int ram_out = axiRead(tb, IO_BASE_ADDR | 0x10);
     cout << "PC: " << hex << (instr_pc & 0xFFF)
          << "\tInstr: " << ((instr_pc >> 16) & 0xFF)
          << endl << "\tP3-P0:[" << setfill('0') << setw(8) << idxr_07 << "]"
          << endl << "\tP7-P4:[" << setfill('0') << setw(8) << idxr_8F << "]"
+         << endl << "\tROM Out:[" << setfill('0') << setw(8) << rom_out << "]"
+         << endl << "\tRAM Out:[" << setfill('0') << setw(8) << ram_out << "]"
          << endl;
 }
 
@@ -180,6 +185,18 @@ int main(int argc, char **argv, char** env) {
         tb->tick();
         time++;
         cout << "\rTick #" << time << flush;
+        if (time % 500 == 0x6) {
+            int ram_out = axiRead(tb, IO_BASE_ADDR | 0x10);
+            if(ram_out == 0x6){
+                cout << " [SENTINEL RECEIVED]" << endl;
+                for (int i = 0; i < extra_cycles; ++i) {
+                    tb->tick();
+                    time++;
+                    cout << "\rTick #" << time << flush;
+                }
+                break;
+            }
+        }
     }
     if (time >= timeout) {
         cout << " [TIMEOUT]" << endl;

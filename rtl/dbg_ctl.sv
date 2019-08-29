@@ -17,12 +17,16 @@ module dbg_ctl (
   output logic rom_rst,
   output logic ram_rst,
 
+  input logic [63:0] io_rom,
+  input logic [63:0] io_ram,
+
   input  mcs4::addr_t              pc,
   input  mcs4::instr_t             instr,
   input  mcs4::char_t [mcs4::Num_regs-1:0] idx_reg
 );
 
 mcs4::byte_t    ctl_rdata;
+mcs4::byte_t    io_rdata;
 always_ff @(posedge clk) begin : proc_rst
   if(rst) begin
     cpu_rst <= 1'b1;
@@ -54,6 +58,14 @@ always_ff @(posedge clk) begin : proc_rst
     dbg_rdata <= ctl_rdata;
   end else if(dbg_addr.seg == dbg::ROM) begin
     dbg_rdata <= rom_rdata;
+  end else if(dbg_addr.seg == dbg::IO) begin
+    case (dbg::Io_addr_mask & dbg_addr.addr)
+      dbg::Io_rom_base_addr: io_rdata <= io_rom[dbg_addr.addr[2:0]*8+:8];
+      dbg::Io_ram_base_addr: io_rdata <= io_ram[dbg_addr.addr[2:0]*8+:8];
+      default : io_rdata <= 8'hAC;
+    endcase
+    // Buffer IO data same cycles as ROM
+    dbg_rdata <= io_rdata;
   end
 end
 

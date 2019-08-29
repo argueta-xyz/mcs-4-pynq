@@ -155,6 +155,8 @@
   wire [7:0]  rom_rdata;
   wire        rom_wen;
   wire        rom_ren;
+  wire [63:0] io_ramchip_out;
+  wire [63:0] io_romchip_out;
   wire [11:0] pc;
   wire [7:0]  instr;
   wire [63:0] idx_reg;
@@ -177,6 +179,10 @@
     .rom_wen  (rom_wen),
     .rom_ren  (rom_ren),
 
+    // IO access
+    .io_rom   (io_romchip_out),
+    .io_ram   (io_ramchip_out),
+
     // Reset Control
     .cpu_rst  (cpu_rst),
     .rom_rst  (rom_rst),
@@ -191,9 +197,8 @@
   wire cm_rom, cl_rom;
   wire [3:0] cm_ram;
   wire sync;
-  wire [NUM_RAM_COLS*NUM_RAM_ROWS*4-1:0] d_ramchip;
-  wire [NUM_RAM_COLS*NUM_RAM_ROWS*4-1:0] d_ramchip_bus;
-  wire [NUM_RAM_COLS*NUM_RAM_ROWS*4-1:0] io_ramchip_out;
+  wire [63:0] d_ramchip;
+  wire [63:0] d_ramchip_bus;
   wire [NUM_ROMS*4-1:0] d_romchip;
   wire [NUM_ROMS*4-1:0] d_romchip_bus;
   wire [3:0] d_cpu;
@@ -204,7 +209,8 @@
   assign d_ram = d_ramchip_bus[NUM_RAM_COLS * NUM_RAM_ROWS*4-1-:4];
   assign d_rom = d_romchip_bus[NUM_ROMS*4-1-:4];
   assign d_bus = d_cpu | d_rom | d_ram;
-  assign ram_dout = io_ramchip_out;
+  assign ram_dout = io_ramchip_out[NUM_RAM_COLS*NUM_RAM_ROWS*4-1:0];
+  assign rom_dout = io_romchip_out[NUM_ROMS*4-1-:4];
   generate
     for (genvar i = 0; i < NUM_ROMS; i=i+1) begin : ROMS
       i4001 #(
@@ -220,7 +226,7 @@
         .dbus_in(d_bus),
         .dbus_out(d_romchip[i*4+:4]),
         .io_in(rom_din[i*4+:4]),
-        .io_out(rom_dout[i*4+:4]),
+        .io_out(io_romchip_out[i*4+:4]),
 
         .dbg_addr(rom_addr),
         .dbg_wdata(rom_wdata),
