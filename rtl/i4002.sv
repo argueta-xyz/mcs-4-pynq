@@ -13,6 +13,7 @@ module i4002 #(
   input  mcs4::char_t [2:0] dbg_addr,
   input  mcs4::byte_t       dbg_wdata,
   output mcs4::byte_t       dbg_rdata,
+  output                    dbg_rdata_vld,
   input                     dbg_wen,
   input                     dbg_ren
 );
@@ -80,7 +81,9 @@ assign dbus_en = opa_received && opa_rd && chip_sel && (icyc == mcs4::X2);
 always_ff @(posedge clk) begin : read_mem
   if(dbg_ren && dbg_sel) begin
     dbg_rdata <= mem[dbg_reg_index][dbg_byte_index+:2];
+    dbg_rdata_vld <= 1'b1;
   end else begin
+    dbg_rdata_vld <= 1'b0;
     if(icyc == mcs4::X1 && opa_received) begin
       case (opa)
         mcs4::SBM : rdata <= mem[reg_index][char_index];

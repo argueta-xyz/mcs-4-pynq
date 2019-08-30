@@ -22,7 +22,7 @@ module mcs4_sys_tb (
 );
 
 localparam integer NUM_ROMS     = 2;
-localparam integer NUM_RAM_ROWS = 1;
+localparam integer NUM_RAM_ROWS = 2;
 localparam integer NUM_RAM_COLS = 1;
 localparam [63:0]  ROM_IO_MASK  = 64'hFFFFFFFFFFFFFFFF;
 

@@ -62,7 +62,7 @@ void checkTimeout(int timeout, int addr, int wdata){
     }
 }
 
-void axiWrite(TESTBENCH<Vmcs4_sys_tb>* tb, int addr, int wdata) {
+void axiWrite(TESTBENCH<Vmcs4_sys_tb>* tb, int addr, int wdata, int wstrb=0xF) {
     int timeout = 100;
     tb->m_core->s_axi_wdata = wdata;
     tb->m_core->s_axi_awaddr = addr;
@@ -79,6 +79,7 @@ void axiWrite(TESTBENCH<Vmcs4_sys_tb>* tb, int addr, int wdata) {
     if (timeout > 0) {
         tb->m_core->s_axi_wvalid = 1;
         tb->m_core->s_axi_wlast = 1;
+        tb->m_core->s_axi_wstrb = wstrb;
         tb->tick();
         while (tb->m_core->s_axi_wready == 0 && timeout > 0) {
             tb->tick();
@@ -221,6 +222,7 @@ int main(int argc, char **argv, char** env) {
         cout << " [DONE]" << endl;
     }
     getCpuInfo(tb);
+    axiWrite(tb, RAM_BASE_ADDR | 0x20, 0xFFFFFFFF, 0xA);
     dumpRamContents(tb, 0x0, 0x40);
     delete tb;
     exit(0);

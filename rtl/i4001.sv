@@ -17,6 +17,7 @@ module i4001 #(
   input  mcs4::char_t [2:0] dbg_addr,
   input  mcs4::byte_t       dbg_wdata,
   output mcs4::byte_t       dbg_rdata,
+  output                    dbg_rdata_vld,
   input                     dbg_wen,
   input                     dbg_ren
 );
@@ -63,11 +64,13 @@ end
 mcs4::byte_t rom_array [mcs4::Bytes_per_rom-1:0];
 mcs4::char_t [1:0] rdata;
 always_ff @(posedge clk) begin : proc_rdata
+  dbg_rdata_vld <= 1'b0;
   if(dbg_wen && dbg_addr[2] == ROM_ID) begin
     rom_array[dbg_addr[1:0]] <= dbg_wdata;
   end
   if(dbg_ren && dbg_addr[2] == ROM_ID) begin
     rdata <= rom_array[dbg_addr[1:0]];
+    dbg_rdata_vld <= 1'b1;
   end else begin
     rdata <= rom_array[in_addr[1:0]];
   end
