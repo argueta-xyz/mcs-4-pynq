@@ -1,6 +1,6 @@
 module i4001 #(
-  parameter ROM_ID = 4'b0000,
-  parameter IO_MASK = 4'b1111,
+  parameter [3:0] ROM_ID = 4'b0000,
+  parameter [3:0] IO_MASK = 4'b1111,
   parameter ROM_FILE = ""
 ) (
   input  clk,

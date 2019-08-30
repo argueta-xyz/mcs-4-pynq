@@ -35,6 +35,9 @@ localparam integer C_S_AXI_WUSER_WIDTH  = 0;
 localparam integer C_S_AXI_RUSER_WIDTH  = 0;
 localparam integer C_S_AXI_BUSER_WIDTH  = 0;
 
+/* verilator lint_save */
+/* verilator lint_off LITENDIAN */
+/* verilator lint_off UNUSED */
 logic [NUM_RAM_COLS*NUM_RAM_ROWS*4-1:0] ram_dout;
 logic [NUM_ROMS*4-1:0]                  rom_dout;
 logic [NUM_ROMS*4-1:0]                  rom_din;
@@ -85,6 +88,7 @@ logic                                   s_axi_rlast;
 logic [C_S_AXI_RUSER_WIDTH-1 : 0]       s_axi_ruser;
 logic                                   s_axi_rvalid;
 logic                                   s_axi_rready;
+/* verilator lint_restore */
 
 assign s_axi_aclk = clk;
 assign s_axi_aresetn = ~rst;

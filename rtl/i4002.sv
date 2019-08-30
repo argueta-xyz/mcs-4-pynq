@@ -1,5 +1,5 @@
 module i4002 #(
-  parameter RAM_ID = 4'b0000
+  parameter [3:0] RAM_ID = 4'b0000
 ) (
   input  clk,
   input  rst,

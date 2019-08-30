@@ -6,7 +6,6 @@
     // Users to add parameters here
     parameter integer DBG_ADDR_WIDTH = 14,
     parameter integer DBG_DATA_WIDTH = 8,
-
     // User parameters ends
     // Do not modify the parameters beyond this line
 
@@ -15,17 +14,7 @@
     // Width of S_AXI data bus
     parameter integer C_S_AXI_DATA_WIDTH  = 32,
     // Width of S_AXI address bus
-    parameter integer C_S_AXI_ADDR_WIDTH  = 14,
-    // Width of optional user defined signal in write address channel
-    parameter integer C_S_AXI_AWUSER_WIDTH  = 0,
-    // Width of optional user defined signal in read address channel
-    parameter integer C_S_AXI_ARUSER_WIDTH  = 0,
-    // Width of optional user defined signal in write data channel
-    parameter integer C_S_AXI_WUSER_WIDTH = 0,
-    // Width of optional user defined signal in read data channel
-    parameter integer C_S_AXI_RUSER_WIDTH = 0,
-    // Width of optional user defined signal in write response channel
-    parameter integer C_S_AXI_BUSER_WIDTH = 0
+    parameter integer C_S_AXI_ADDR_WIDTH  = 14
   )
   (
     // Users to add ports here
@@ -48,28 +37,12 @@
     // Burst length. The burst length gives the exact number of transfers in a burst
     input wire [7 : 0] S_AXI_AWLEN,
     // Burst size. This signal indicates the size of each transfer in the burst
+    /* verilator lint_off UNUSED */
     input wire [2 : 0] S_AXI_AWSIZE,
+    /* verilator lint_on UNUSED */
     // Burst type. The burst type and the size information,
     // determine how the address for each transfer within the burst is calculated.
     input wire [1 : 0] S_AXI_AWBURST,
-    // Lock type. Provides additional information about the
-    // atomic characteristics of the transfer.
-    input wire  S_AXI_AWLOCK,
-    // Memory type. This signal indicates how transactions
-    // are required to progress through a system.
-    input wire [3 : 0] S_AXI_AWCACHE,
-    // Protection type. This signal indicates the privilege
-    // and security level of the transaction, and whether
-    // the transaction is a data access or an instruction access.
-    input wire [2 : 0] S_AXI_AWPROT,
-    // Quality of Service, QoS identifier sent for each
-    // write transaction.
-    input wire [3 : 0] S_AXI_AWQOS,
-    // Region identifier. Permits a single physical interface
-    // on a slave to be used for multiple logical interfaces.
-    input wire [3 : 0] S_AXI_AWREGION,
-    // Optional User-defined signal in the write address channel.
-    input wire [C_S_AXI_AWUSER_WIDTH-1 : 0] S_AXI_AWUSER,
     // Write address valid. This signal indicates that
     // the channel is signaling valid write address and
     // control information.
@@ -87,8 +60,6 @@
     // Write last. This signal indicates the last transfer
     // in a write burst.
     input wire  S_AXI_WLAST,
-    // Optional User-defined signal in the write data channel.
-    input wire [C_S_AXI_WUSER_WIDTH-1 : 0] S_AXI_WUSER,
     // Write valid. This signal indicates that valid write
     // data and strobes are available.
     input wire  S_AXI_WVALID,
@@ -101,8 +72,6 @@
     // Write response. This signal indicates the status
     // of the write transaction.
     output wire [1 : 0] S_AXI_BRESP,
-    // Optional User-defined signal in the write response channel.
-    output wire [C_S_AXI_BUSER_WIDTH-1 : 0] S_AXI_BUSER,
     // Write response valid. This signal indicates that the
     // channel is signaling a valid write response.
     output wire  S_AXI_BVALID,
@@ -118,28 +87,12 @@
     // Burst length. The burst length gives the exact number of transfers in a burst
     input wire [7 : 0] S_AXI_ARLEN,
     // Burst size. This signal indicates the size of each transfer in the burst
+    /* verilator lint_off UNUSED */
     input wire [2 : 0] S_AXI_ARSIZE,
+    /* verilator lint_on UNUSED */
     // Burst type. The burst type and the size information,
     // determine how the address for each transfer within the burst is calculated.
     input wire [1 : 0] S_AXI_ARBURST,
-    // Lock type. Provides additional information about the
-    // atomic characteristics of the transfer.
-    input wire  S_AXI_ARLOCK,
-    // Memory type. This signal indicates how transactions
-    // are required to progress through a system.
-    input wire [3 : 0] S_AXI_ARCACHE,
-    // Protection type. This signal indicates the privilege
-    // and security level of the transaction, and whether
-    // the transaction is a data access or an instruction access.
-    input wire [2 : 0] S_AXI_ARPROT,
-    // Quality of Service, QoS identifier sent for each
-    // read transaction.
-    input wire [3 : 0] S_AXI_ARQOS,
-    // Region identifier. Permits a single physical interface
-    // on a slave to be used for multiple logical interfaces.
-    input wire [3 : 0] S_AXI_ARREGION,
-    // Optional User-defined signal in the read address channel.
-    input wire [C_S_AXI_ARUSER_WIDTH-1 : 0] S_AXI_ARUSER,
     // Write address valid. This signal indicates that
     // the channel is signaling valid read address and
     // control information.
@@ -159,8 +112,6 @@
     // Read last. This signal indicates the last transfer
     // in a read burst.
     output wire  S_AXI_RLAST,
-    // Optional User-defined signal in the read address channel.
-    output wire [C_S_AXI_RUSER_WIDTH-1 : 0] S_AXI_RUSER,
     // Read valid. This signal indicates that the channel
     // is signaling the required read data.
     output wire  S_AXI_RVALID,
@@ -174,14 +125,12 @@
   reg   axi_awready;
   reg   axi_wready;
   reg [1 : 0]   axi_bresp;
-  reg [C_S_AXI_BUSER_WIDTH-1 : 0]   axi_buser;
   reg   axi_bvalid;
   reg [C_S_AXI_ADDR_WIDTH-1 : 0]  axi_araddr;
   reg   axi_arready;
   reg [C_S_AXI_DATA_WIDTH-1 : 0]  axi_rdata;
   reg [1 : 0]   axi_rresp;
   reg   axi_rlast;
-  reg [C_S_AXI_RUSER_WIDTH-1 : 0]   axi_ruser;
   reg   axi_rvalid;
   // aw_wrap_en determines wrap boundary and enables wrapping
   wire aw_wrap_en;
@@ -213,10 +162,12 @@
   //ADDR_LSB = 3 for 42 bits (n downto 3)
 
   localparam integer ADDR_LSB = (C_S_AXI_DATA_WIDTH/32)+ 1;
+
   //---------------------------------------
   //-- Signals for user logic memory space
   //---------------------------------------
-
+  // Because this generated code is a mess WRT size issues.
+  /* verilator lint_off WIDTH */
   genvar i;
   genvar j;
   genvar mem_byte_index;
@@ -226,20 +177,20 @@
   assign S_AXI_AWREADY  = axi_awready;
   assign S_AXI_WREADY = axi_wready;
   assign S_AXI_BRESP  = axi_bresp;
-  assign S_AXI_BUSER  = axi_buser;
   assign S_AXI_BVALID = axi_bvalid;
   assign S_AXI_ARREADY  = axi_arready;
   assign S_AXI_RDATA  = axi_rdata;
   assign S_AXI_RRESP  = axi_rresp;
   assign S_AXI_RLAST  = axi_rlast;
-  assign S_AXI_RUSER  = axi_ruser;
   assign S_AXI_RVALID = axi_rvalid;
   assign S_AXI_BID = S_AXI_AWID;
   assign S_AXI_RID = S_AXI_ARID;
   assign  aw_wrap_size = (C_S_AXI_DATA_WIDTH/8 * (axi_awlen));
   assign  ar_wrap_size = (C_S_AXI_DATA_WIDTH/8 * (axi_arlen));
-  assign  aw_wrap_en = ((axi_awaddr & aw_wrap_size) == aw_wrap_size)? 1'b1: 1'b0;
-  assign  ar_wrap_en = ((axi_araddr & ar_wrap_size) == ar_wrap_size)? 1'b1: 1'b0;
+  assign  aw_wrap_en = (({{32-C_S_AXI_ADDR_WIDTH{1'b0}}, axi_awaddr} & aw_wrap_size)
+                        == aw_wrap_size)? 1'b1: 1'b0;
+  assign  ar_wrap_en = (({{32-C_S_AXI_ADDR_WIDTH{1'b0}}, axi_araddr} & ar_wrap_size)
+                        == ar_wrap_size)? 1'b1: 1'b0;
 
   // Implement axi_awready generation
 
@@ -324,7 +275,7 @@
               // The write address wraps when the address reaches wrap boundary
                 if (aw_wrap_en)
                   begin
-                    axi_awaddr <= (axi_awaddr - aw_wrap_size);
+                    axi_awaddr <= ({{32-C_S_AXI_ADDR_WIDTH{1'b0}}, axi_awaddr} - aw_wrap_size);
                   end
                 else
                   begin
@@ -333,7 +284,7 @@
                   end
               default: //reserved (incremental burst for example)
                 begin
-                  axi_awaddr <= axi_awaddr[C_S_AXI_ADDR_WIDTH - 1:ADDR_LSB] + 1;
+                  axi_awaddr[C_S_AXI_ADDR_WIDTH - 1:ADDR_LSB] <= axi_awaddr[C_S_AXI_ADDR_WIDTH - 1:ADDR_LSB] + 1;
                   //for awsize = 4 bytes (010)
                 end
             endcase
@@ -380,7 +331,6 @@
       begin
         axi_bvalid <= 0;
         axi_bresp <= 2'b0;
-        axi_buser <= 0;
       end
     else
       begin
@@ -447,7 +397,6 @@
         axi_arburst <= 0;
         axi_arlen <= 0;
         axi_rlast <= 1'b0;
-        axi_ruser <= 0;
       end
     else
       begin
@@ -542,6 +491,7 @@
           end
       end
   end
+  /* verilator lint_on WIDTH */
 
   // ------------------------------------------
   // -- 32bit word to 8bit word R/W conversion
@@ -557,6 +507,7 @@
   end
 
   reg [C_S_AXI_DATA_WIDTH-1 : 0] axi_wdata;
+  reg [(C_S_AXI_DATA_WIDTH/8)-1 : 0] axi_wstrb;
   reg [2:0] wcycle_count;
   reg [3:0] rcycle_count;
   assign stall = (wcycle_count > 1 && axi_awv_awr_flag) || (rcycle_count > 1 && axi_arv_arr_flag);
@@ -565,8 +516,10 @@
       wcycle_count <= 0;
       rcycle_count <= 0;
       axi_wdata <= 0;
+      axi_wstrb <= 0;
     end else begin
       axi_wdata <= S_AXI_WVALID? S_AXI_WDATA : axi_wdata;
+      axi_wstrb <= S_AXI_WVALID? S_AXI_WSTRB : axi_wstrb;
       wcycle_count <= S_AXI_WVALID ? (wcycle_count > 0 ? wcycle_count - 1 : 0) : 3'd4;
       rcycle_count <= axi_arv_arr_flag ? (rcycle_count > 0 ? rcycle_count - 1 : 0) : 4'd9;
     end
@@ -575,7 +528,7 @@
   assign dbg_addr  = axi_awv_awr_flag ? {axi_awaddr[DBG_ADDR_WIDTH-1:ADDR_LSB], byte_index} :
                                         {axi_araddr[DBG_ADDR_WIDTH-1:ADDR_LSB], byte_index};
   assign dbg_wdata = axi_wdata[byte_index*DBG_DATA_WIDTH+:DBG_DATA_WIDTH];
-  assign dbg_wen   = axi_awv_awr_flag && wcycle_count < 3'd4;
+  assign dbg_wen   = axi_awv_awr_flag && wcycle_count < 3'd4 && axi_wstrb[byte_index];
   assign dbg_ren   = axi_arv_arr_flag && rcycle_count < 4'd9 && rcycle_count > 4'd4;
 
   endmodule
