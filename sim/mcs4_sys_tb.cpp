@@ -144,12 +144,18 @@ void setResets(TESTBENCH<Vmcs4_sys_tb>* tb, int cpu, int rom, int ram) {
     axiWrite(tb, CTL_BASE_ADDR | 0x0, ram << 2 | rom << 1 | cpu);
 }
 
+void setInputs(TESTBENCH<Vmcs4_sys_tb>* tb, int hi, int lo) {
+    axiWrite(tb, CTL_BASE_ADDR | 0x10, 0x1);
+    axiWrite(tb, IO_BASE_ADDR | 0x0, lo);
+    axiWrite(tb, IO_BASE_ADDR | 0x4, hi);
+}
+
 void getCpuInfo(TESTBENCH<Vmcs4_sys_tb>* tb) {
     int instr_pc = axiRead(tb, CTL_BASE_ADDR | 0x4);
     int idxr_07 = axiRead(tb, CTL_BASE_ADDR | 0x8);
     int idxr_8F = axiRead(tb, CTL_BASE_ADDR | 0xC);
-    int rom_out = axiRead(tb, IO_BASE_ADDR | 0x0);
-    int ram_out = axiRead(tb, IO_BASE_ADDR | 0x10);
+    int rom_out = axiRead(tb, IO_BASE_ADDR | 0x10);
+    int ram_out = axiRead(tb, IO_BASE_ADDR | 0x20);
     cout << "PC: " << hex << (instr_pc & 0xFFF)
          << "\tInstr: " << ((instr_pc >> 16) & 0xFF)
          << endl << "\tP3-P0:[" << setfill('0') << setw(8) << idxr_07 << "]"
@@ -157,6 +163,17 @@ void getCpuInfo(TESTBENCH<Vmcs4_sys_tb>* tb) {
          << endl << "\tROM Out:[" << setfill('0') << setw(8) << rom_out << "]"
          << endl << "\tRAM Out:[" << setfill('0') << setw(8) << ram_out << "]"
          << endl;
+}
+
+void dumpRamContents(TESTBENCH<Vmcs4_sys_tb>* tb, int addr, int size) {
+    cout << "Dumping RAM contents from 0x" << hex << addr << " to 0x"
+         << addr + size << endl;
+
+    for (int i = addr; i < addr + size; i+=4) {
+        int data = axiRead(tb, RAM_BASE_ADDR | i);
+        cout << "\t0x" << setfill('0') << setw(2) << hex << i << ": "
+             << setfill('0') << setw(8) << hex << data << endl;
+    }
 }
 
 int main(int argc, char **argv, char** env) {
@@ -177,8 +194,8 @@ int main(int argc, char **argv, char** env) {
     tb->reset();
 
     initMemory(tb, rom_bytes);
+    setInputs(tb, 0x0, 0x9);
     setResets(tb, 0, 0, 0);
-
     cout << "Tick #" << time << " [START]" << endl;
     // Tick the clock until we are done
     while(time < timeout && !tb->done()) {
@@ -186,7 +203,7 @@ int main(int argc, char **argv, char** env) {
         time++;
         cout << "\rTick #" << time << flush;
         if (time % 500 == 0x6) {
-            int ram_out = axiRead(tb, IO_BASE_ADDR | 0x10);
+            int ram_out = axiRead(tb, IO_BASE_ADDR | 0x20);
             if(ram_out == 0x6){
                 cout << " [SENTINEL RECEIVED]" << endl;
                 for (int i = 0; i < extra_cycles; ++i) {
@@ -204,6 +221,7 @@ int main(int argc, char **argv, char** env) {
         cout << " [DONE]" << endl;
     }
     getCpuInfo(tb);
+    dumpRamContents(tb, 0x0, 0x40);
     delete tb;
     exit(0);
 }
