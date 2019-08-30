@@ -77,7 +77,7 @@ void initMemory(TESTBENCH<Vmcs4_tb>* tb, vector<int> rom_bytes) {
 }
 
 void setResets(TESTBENCH<Vmcs4_tb>* tb, int cpu, int rom, int ram) {
-    debugWrite(tb, CTL_BASE_ADDR | 0x0, ram << 8 | rom << 4 | cpu);
+    debugWrite(tb, CTL_BASE_ADDR | 0x0, ram << 2 | rom << 1 | cpu);
 }
 
 int main(int argc, char **argv, char** env) {

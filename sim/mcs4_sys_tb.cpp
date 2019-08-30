@@ -141,7 +141,7 @@ void initMemory(TESTBENCH<Vmcs4_sys_tb>* tb, vector<int> rom_bytes) {
 }
 
 void setResets(TESTBENCH<Vmcs4_sys_tb>* tb, int cpu, int rom, int ram) {
-    axiWrite(tb, CTL_BASE_ADDR | 0x0, ram << 8 | rom << 4 | cpu);
+    axiWrite(tb, CTL_BASE_ADDR | 0x0, ram << 2 | rom << 1 | cpu);
 }
 
 void getCpuInfo(TESTBENCH<Vmcs4_sys_tb>* tb) {
