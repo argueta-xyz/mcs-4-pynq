@@ -4,7 +4,8 @@
 #include <sstream>
 #include <stdlib.h>
 #include "svdpi.h"
-#include "testbench.h"
+// #include "testbench.h"
+#include "axi_testbench.h"
 #include "verilated.h"
 #include "Vmcs4_sys_tb.h"
 using namespace std;
@@ -55,74 +56,7 @@ vector<int> parseRom(string filename) {
     return rom_bytes;
 }
 
-void checkTimeout(int timeout, int addr, int wdata){
-    if (timeout == 0) {
-        cout << "ERROR: AXI Write timed out: [" << hex << addr << "] =" << wdata
-             << dec << endl;
-    }
-}
-
-void axiWrite(TESTBENCH<Vmcs4_sys_tb>* tb, int addr, int wdata, int wstrb=0xF) {
-    int timeout = 100;
-    tb->m_core->s_axi_wdata = wdata;
-    tb->m_core->s_axi_awaddr = addr;
-    tb->m_core->s_axi_awvalid = 1;
-    tb->m_core->s_axi_wvalid = 0;
-    tb->m_core->s_axi_wlast = 0;
-    tb->tick();
-    while (tb->m_core->s_axi_awready == 0 && timeout > 0) {
-        tb->tick();
-        timeout--;
-    }
-    tb->m_core->s_axi_awvalid = 0;
-    checkTimeout(timeout, addr, wdata);
-    if (timeout > 0) {
-        tb->m_core->s_axi_wvalid = 1;
-        tb->m_core->s_axi_wlast = 1;
-        tb->m_core->s_axi_wstrb = wstrb;
-        tb->tick();
-        while (tb->m_core->s_axi_wready == 0 && timeout > 0) {
-            tb->tick();
-            timeout--;
-        }
-    }
-    checkTimeout(timeout, addr, wdata);
-    tb->tick();
-    tb->m_core->s_axi_wvalid = 0;
-    tb->m_core->s_axi_wlast = 0;
-}
-
-int axiRead(TESTBENCH<Vmcs4_sys_tb>* tb, int addr) {
-    int timeout = 100;
-    tb->m_core->s_axi_araddr = addr;
-    tb->m_core->s_axi_arvalid = 1;
-    tb->m_core->s_axi_rready = 0;
-    while (tb->m_core->s_axi_arready == 0 && timeout > 0) {
-        tb->tick();
-        timeout--;
-    }
-    tb->tick();
-    if (timeout == 0) {
-        cout << "ERROR: AXI Read timed out: [" << hex << addr << "]"
-             << dec << endl;
-    }
-    tb->m_core->s_axi_arvalid = 0;
-    tb->m_core->s_axi_rready = 1;
-    while (tb->m_core->s_axi_rvalid == 0 && timeout > 0) {
-        tb->tick();
-        timeout--;
-    }
-    tb->tick();
-    if (timeout == 0) {
-        cout << "ERROR: AXI Read timed out: [" << hex << addr << "]"
-             << dec << endl;
-    }
-    tb->m_core->s_axi_rready = 0;
-    return tb->m_core->s_axi_rdata;
-}
-
-
-void initMemory(TESTBENCH<Vmcs4_sys_tb>* tb, vector<int> rom_bytes) {
+void initMemory(AXI_TESTBENCH<Vmcs4_sys_tb>* tb, vector<int> rom_bytes) {
     // Write ROMs while in reset
     // tb->reset();
     for (int addr = 0; addr < rom_bytes.size(); addr+=4) {
@@ -130,8 +64,9 @@ void initMemory(TESTBENCH<Vmcs4_sys_tb>* tb, vector<int> rom_bytes) {
                     (rom_bytes[addr + 1]  & 0xFF) << 8  |
                     (rom_bytes[addr + 2]  & 0xFF) << 16 |
                     (rom_bytes[addr + 3]  & 0xFF) << 24;
-        axiWrite(tb, ROM_BASE_ADDR | addr, wdata);
-        int out = axiRead(tb, ROM_BASE_ADDR | addr);
+        tb->axiWrite(ROM_BASE_ADDR | addr, wdata);
+        // axiWrite(tb, ROM_BASE_ADDR | addr, wdata);
+        int out = tb->axiRead(ROM_BASE_ADDR | addr);
         if (out != wdata) {
             cout << "ERROR: RData[" << hex << addr << "] != WData:\n\tExp: " <<
                     wdata << "\n\tGot: " << out << dec << endl;
@@ -141,22 +76,26 @@ void initMemory(TESTBENCH<Vmcs4_sys_tb>* tb, vector<int> rom_bytes) {
     cout << "Done initializing " << dec << rom_bytes.size() << " bytes" << endl;
 }
 
-void setResets(TESTBENCH<Vmcs4_sys_tb>* tb, int cpu, int rom, int ram) {
-    axiWrite(tb, CTL_BASE_ADDR | 0x0, ram << 2 | rom << 1 | cpu);
+void setResets(AXI_TESTBENCH<Vmcs4_sys_tb>* tb, int cpu, int rom, int ram) {
+    // axiWrite(tb, CTL_BASE_ADDR | 0x0, ram << 2 | rom << 1 | cpu);
+    tb->axiWrite(CTL_BASE_ADDR | 0x0, ram << 2 | rom << 1 | cpu);
 }
 
-void setInputs(TESTBENCH<Vmcs4_sys_tb>* tb, int hi, int lo) {
-    axiWrite(tb, CTL_BASE_ADDR | 0x10, 0x1);
-    axiWrite(tb, IO_BASE_ADDR | 0x0, lo);
-    axiWrite(tb, IO_BASE_ADDR | 0x4, hi);
+void setInputs(AXI_TESTBENCH<Vmcs4_sys_tb>* tb, int hi, int lo) {
+    // axiWrite(tb, CTL_BASE_ADDR | 0x10, 0x1);
+    // axiWrite(tb, IO_BASE_ADDR | 0x0, lo);
+    // axiWrite(tb, IO_BASE_ADDR | 0x4, hi);
+    tb->axiWrite(CTL_BASE_ADDR | 0x10, 0x1);
+    tb->axiWrite(IO_BASE_ADDR  | 0x0, lo);
+    tb->axiWrite(IO_BASE_ADDR  | 0x4, hi);
 }
 
-void getCpuInfo(TESTBENCH<Vmcs4_sys_tb>* tb) {
-    int instr_pc = axiRead(tb, CTL_BASE_ADDR | 0x4);
-    int idxr_07 = axiRead(tb, CTL_BASE_ADDR | 0x8);
-    int idxr_8F = axiRead(tb, CTL_BASE_ADDR | 0xC);
-    int rom_out = axiRead(tb, IO_BASE_ADDR | 0x10);
-    int ram_out = axiRead(tb, IO_BASE_ADDR | 0x20);
+void getCpuInfo(AXI_TESTBENCH<Vmcs4_sys_tb>* tb) {
+    int instr_pc = tb->axiRead(CTL_BASE_ADDR | 0x4);
+    int idxr_07 = tb->axiRead(CTL_BASE_ADDR | 0x8);
+    int idxr_8F = tb->axiRead(CTL_BASE_ADDR | 0xC);
+    int rom_out = tb->axiRead(IO_BASE_ADDR | 0x10);
+    int ram_out = tb->axiRead(IO_BASE_ADDR | 0x20);
     cout << "PC: " << hex << (instr_pc & 0xFFF)
          << "\tInstr: " << ((instr_pc >> 16) & 0xFF)
          << endl << "\tP3-P0:[" << setfill('0') << setw(8) << idxr_07 << "]"
@@ -166,12 +105,12 @@ void getCpuInfo(TESTBENCH<Vmcs4_sys_tb>* tb) {
          << endl;
 }
 
-void dumpRamContents(TESTBENCH<Vmcs4_sys_tb>* tb, int addr, int size) {
+void dumpRamContents(AXI_TESTBENCH<Vmcs4_sys_tb>* tb, int addr, int size) {
     cout << "Dumping RAM contents from 0x" << hex << addr << " to 0x"
          << addr + size << endl;
 
     for (int i = addr; i < addr + size; i+=4) {
-        int data = axiRead(tb, RAM_BASE_ADDR | i);
+        int data = tb->axiRead(RAM_BASE_ADDR | i);
         cout << "\t0x" << setfill('0') << setw(2) << hex << i << ": "
              << setfill('0') << setw(8) << hex << data << endl;
     }
@@ -185,7 +124,7 @@ int main(int argc, char **argv, char** env) {
     int extra_cycles = 32;
 
     // Create an instance of our module under test
-    TESTBENCH<Vmcs4_sys_tb>* tb = new TESTBENCH<Vmcs4_sys_tb>();
+    AXI_TESTBENCH<Vmcs4_sys_tb>* tb = new AXI_TESTBENCH<Vmcs4_sys_tb>();
     Vmcs4_sys_tb* ports = tb->m_core;
 
     tb->openTrace("simx.fst");
@@ -204,7 +143,7 @@ int main(int argc, char **argv, char** env) {
         time++;
         cout << "\rTick #" << time << flush;
         if (time % 500 == 0x6) {
-            int ram_out = axiRead(tb, IO_BASE_ADDR | 0x20);
+            int ram_out = tb->axiRead(IO_BASE_ADDR | 0x20);
             if(ram_out == 0x6){
                 cout << " [SENTINEL RECEIVED]" << endl;
                 for (int i = 0; i < extra_cycles; ++i) {
@@ -222,7 +161,6 @@ int main(int argc, char **argv, char** env) {
         cout << " [DONE]" << endl;
     }
     getCpuInfo(tb);
-    axiWrite(tb, RAM_BASE_ADDR | 0x20, 0xFFFFFFFF, 0xA);
     dumpRamContents(tb, 0x0, 0x40);
     delete tb;
     exit(0);
