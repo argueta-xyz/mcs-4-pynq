@@ -127,11 +127,12 @@ update_ip_catalog
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\
+xilinx.com:ip:xlconstant:1.1\
 xilinx.com:ip:smartconnect:1.0\
+xilinx.com:ip:xlconcat:2.1\
 argueta.xyz:user:mcs4:1.0\
 xilinx.com:ip:processing_system7:5.5\
 xilinx.com:ip:proc_sys_reset:5.0\
-xilinx.com:ip:xlconcat:2.1\
 "
 
    set list_ips_missing ""
@@ -203,8 +204,15 @@ proc create_root_design { parentCell } {
 
 
   # Create ports
-  set btn [ create_bd_port -dir I -from 1 -to 0 btn ]
+  set btn [ create_bd_port -dir I -from 3 -to 0 btn ]
   set sw [ create_bd_port -dir I -from 1 -to 0 sw ]
+
+  # Create instance: GND, and set properties
+  set GND [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 GND ]
+  set_property -dict [ list \
+   CONFIG.CONST_VAL {0} \
+   CONFIG.CONST_WIDTH {2} \
+ ] $GND
 
   # Create instance: axi_smc, and set properties
   set axi_smc [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 axi_smc ]
@@ -212,8 +220,20 @@ proc create_root_design { parentCell } {
    CONFIG.NUM_SI {1} \
  ] $axi_smc
 
+  # Create instance: hio_concat, and set properties
+  set hio_concat [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 hio_concat ]
+  set_property -dict [ list \
+   CONFIG.IN0_WIDTH {2} \
+   CONFIG.IN1_WIDTH {4} \
+   CONFIG.IN2_WIDTH {2} \
+   CONFIG.NUM_PORTS {3} \
+ ] $hio_concat
+
   # Create instance: mcs4_0, and set properties
   set mcs4_0 [ create_bd_cell -type ip -vlnv argueta.xyz:user:mcs4:1.0 mcs4_0 ]
+  set_property -dict [ list \
+   CONFIG.NUM_ROMS {2} \
+ ] $mcs4_0
 
   # Create instance: processing_system7_0, and set properties
   set processing_system7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0 ]
@@ -991,13 +1011,6 @@ proc create_root_design { parentCell } {
   # Create instance: rst_ps7_0_100M, and set properties
   set rst_ps7_0_100M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps7_0_100M ]
 
-  # Create instance: xlconcat_0, and set properties
-  set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
-  set_property -dict [ list \
-   CONFIG.IN0_WIDTH {2} \
-   CONFIG.IN1_WIDTH {2} \
- ] $xlconcat_0
-
   # Create interface connections
   connect_bd_intf_net -intf_net axi_smc_M00_AXI [get_bd_intf_pins axi_smc/M00_AXI] [get_bd_intf_pins mcs4_0/S_AXI]
   connect_bd_intf_net -intf_net mcs4_0_ram_dout [get_bd_intf_ports leds] [get_bd_intf_pins mcs4_0/ram_dout]
@@ -1006,12 +1019,13 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins axi_smc/S00_AXI] [get_bd_intf_pins processing_system7_0/M_AXI_GP0]
 
   # Create port connections
-  connect_bd_net -net btn_1 [get_bd_ports btn] [get_bd_pins xlconcat_0/In1]
+  connect_bd_net -net GND_dout [get_bd_pins GND/dout] [get_bd_pins hio_concat/In2]
+  connect_bd_net -net btn_1 [get_bd_ports btn] [get_bd_pins hio_concat/In1]
   connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins axi_smc/aclk] [get_bd_pins mcs4_0/s_axi_aclk] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rst_ps7_0_100M/ext_reset_in]
   connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins axi_smc/aresetn] [get_bd_pins mcs4_0/s_axi_aresetn] [get_bd_pins rst_ps7_0_100M/peripheral_aresetn]
-  connect_bd_net -net sw_1 [get_bd_ports sw] [get_bd_pins xlconcat_0/In0]
-  connect_bd_net -net xlconcat_0_dout [get_bd_pins mcs4_0/rom_din] [get_bd_pins xlconcat_0/dout]
+  connect_bd_net -net sw_1 [get_bd_ports sw] [get_bd_pins hio_concat/In0]
+  connect_bd_net -net xlconcat_0_dout [get_bd_pins hio_concat/dout] [get_bd_pins mcs4_0/rom_din]
 
   # Create address segments
   create_bd_addr_seg -range 0x00010000 -offset 0x7AA00000 [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs mcs4_0/S_AXI/S_AXI_mem] SEG_mcs4_0_S_AXI_mem

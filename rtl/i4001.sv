@@ -17,7 +17,7 @@ module i4001 #(
   input  mcs4::char_t [2:0] dbg_addr,
   input  mcs4::byte_t       dbg_wdata,
   output mcs4::byte_t       dbg_rdata,
-  output                    dbg_rdata_vld,
+  output logic              dbg_rdata_vld,
   input                     dbg_wen,
   input                     dbg_ren
 );
