@@ -81,6 +81,11 @@
     /* verilator lint_restore */
   );
 
+  // Tie off unused ports
+  assign s_axi_buser = 0;
+  assign s_axi_ruser = 0;
+  localparam CHAR_W = 4;
+  localparam BYTE_W = 8;
   localparam NUM_RAMS = NUM_RAM_ROWS * NUM_RAM_COLS;
 
   // ------------------------------------------
@@ -134,9 +139,7 @@
     .dbg_ren       (dbg_ren),
     .dbg_rdata     (dbg_rdata)
   );
-  // Tie off unused optional ports
-  assign s_axi_buser = '0;
-  assign s_axi_ruser = '0;
+  
 
   // ------------------------------------------
   // -- Debug Controller
@@ -220,16 +223,16 @@
   wire       cl_rom;
   wire       cm_rom;
 
-  wire [3:0]            d_rom;
-  wire [NUM_ROMS*4-1:0] d_romchip;
-  wire [NUM_ROMS*4-1:0] d_romchip_bus;
-  wire [NUM_ROMS*8-1:0] dbg_romchip_rdata;
-  wire [NUM_ROMS-1:0]   dbg_romchip_rdata_vld;
+  wire [3:0]                 d_rom;
+  wire [NUM_ROMS*CHAR_W-1:0] d_romchip;
+  wire [NUM_ROMS*CHAR_W-1:0] d_romchip_bus;
+  wire [NUM_ROMS*BYTE_W-1:0] dbg_romchip_rdata;
+  wire [NUM_ROMS-1:0]        dbg_romchip_rdata_vld;
   generate
     for (genvar i = 0; i < NUM_ROMS; i=i+1) begin : ROMS
       i4001 #(
         .ROM_ID(i[3:0]),
-        .IO_MASK(ROM_IO_MASK[i*4+:4]),
+        .IO_MASK(ROM_IO_MASK[i*CHAR_W+:CHAR_W]),
         .ROM_FILE("rom_00.hrom")
       ) rom (
         .clk     (s_axi_aclk),
@@ -238,14 +241,14 @@
         .cl_rom  (cl_rom),
         .cm_rom  (cm_rom),
         .dbus_in (d_bus),
-        .dbus_out(d_romchip[i*4+:4]),
+        .dbus_out(d_romchip[i*CHAR_W+:CHAR_W]),
 
-        .io_in   (io_romchip_in[i*4+:4]),
-        .io_out  (io_romchip_out[i*4+:4]),
+        .io_in   (io_romchip_in[i*CHAR_W+:CHAR_W]),
+        .io_out  (io_romchip_out[i*CHAR_W+:CHAR_W]),
 
         .dbg_addr     (dbg_rom_addr),
         .dbg_wdata    (dbg_rom_wdata),
-        .dbg_rdata    (dbg_romchip_rdata[i*8+:8]),
+        .dbg_rdata    (dbg_romchip_rdata[i*BYTE_W+:BYTE_W]),
         .dbg_rdata_vld(dbg_romchip_rdata_vld[i]),
         .dbg_wen      (dbg_rom_wen),
         .dbg_ren      (dbg_rom_ren)
@@ -255,25 +258,25 @@
 
   genvar i, j, k;
   generate
-    for (i = 0; i < mcs4::Char_width; i=i+1) begin : ROM_BUS
+    for (i = 0; i < CHAR_W; i=i+1) begin : ROM_BUS
       for (j = 0; j < NUM_ROMS; j=j+1) begin : BITWISE_OR
-        assign d_romchip_bus[i*NUM_ROMS+j] = d_romchip[i+j*mcs4::Char_width];
+        assign d_romchip_bus[i*NUM_ROMS+j] = d_romchip[i+j*CHAR_W];
       end
       assign d_rom[i] = |d_romchip_bus[i*NUM_ROMS+:NUM_ROMS];
     end
-    always @(*) begin
-      dbg_rom_rdata = '0;
-      for (i = 0; i < NUM_ROMS; i=i+1) begin : ROM_DBG_RDATA
+    for (i = 0; i < NUM_ROMS; i=i+1) begin : ROM_DBG_RDATA
+      always @(*) begin
+        dbg_rom_rdata = 0;
         if(dbg_romchip_rdata_vld[i]) begin
-          dbg_rom_rdata = dbg_romchip_rdata[i*8+:8];
+          dbg_rom_rdata = dbg_romchip_rdata[i*BYTE_W+:BYTE_W];
         end
       end
     end
   endgenerate
 
   assign cl_rom = 0;
-  assign io_romchip_in[NUM_ROMS*4-1:0] = dbg_rom_in_drive ? dbg_rom_in[NUM_ROMS*4-1:0] : rom_din;
-  assign rom_dout = io_romchip_out[NUM_ROMS*4-1:0];
+  assign io_romchip_in[NUM_ROMS*CHAR_W-1:0] = dbg_rom_in_drive ? dbg_rom_in[NUM_ROMS*CHAR_W-1:0] : rom_din;
+  assign rom_dout = io_romchip_out[NUM_ROMS*CHAR_W-1:0];
 
   // ------------------------------------------
   // -- 4002 RAM
@@ -284,8 +287,8 @@
   wire [3:0]  d_ram;
   wire [63:0] d_ramchip;
   wire [63:0] d_ramchip_bus;
-  wire [NUM_RAMS*8-1:0] dbg_ramchip_rdata;
-  wire [NUM_RAMS-1:0]   dbg_ramchip_rdata_vld;
+  wire [NUM_RAMS*BYTE_W-1:0] dbg_ramchip_rdata;
+  wire [NUM_RAMS-1:0]        dbg_ramchip_rdata_vld;
   generate
   for (i = 0; i < NUM_RAM_ROWS; i=i+1) begin : RAM_BANK
     for (j = 0; j < NUM_RAM_COLS; j=j+1) begin : RAM_CHIP
@@ -298,13 +301,13 @@
         .sync         (sync),
         .cm_ram       (cm_ram[i]),
         .dbus_in      (d_bus),
-        .dbus_out     (d_ramchip[RAM_ID*4+:4]),
+        .dbus_out     (d_ramchip[RAM_ID*CHAR_W+:CHAR_W]),
 
-        .io_out       (io_ramchip_out[RAM_ID*4+:4]),
+        .io_out       (io_ramchip_out[RAM_ID*CHAR_W+:CHAR_W]),
 
         .dbg_addr     (dbg_ram_addr),
         .dbg_wdata    (dbg_ram_wdata),
-        .dbg_rdata    (dbg_ramchip_rdata[RAM_ID*8+:8]),
+        .dbg_rdata    (dbg_ramchip_rdata[RAM_ID*BYTE_W+:BYTE_W]),
         .dbg_rdata_vld(dbg_ramchip_rdata_vld[RAM_ID]),
         .dbg_wen      (dbg_ram_wen),
         .dbg_ren      (dbg_ram_ren)
@@ -314,23 +317,23 @@
   endgenerate
 
   generate
-    for (i = 0; i < mcs4::Char_width; i=i+1) begin : RAM_BUS
+    for (i = 0; i < CHAR_W; i=i+1) begin : RAM_BUS
       for (j = 0; j < NUM_RAMS; j=j+1) begin : BITWISE_OR
-        assign d_ramchip_bus[i*NUM_RAMS+j] = d_ramchip[i+j*mcs4::Char_width];
+        assign d_ramchip_bus[i*NUM_RAMS+j] = d_ramchip[i+j*CHAR_W];
       end
       assign d_ram[i] = |d_ramchip_bus[i*NUM_RAMS+:NUM_RAMS];
     end
-    always @(*) begin
-      dbg_ram_rdata = '0;
-      for (i = 0; i < NUM_RAMS; i=i+1) begin : RAM_DBG_RDATA
+    for (i = 0; i < NUM_RAMS; i=i+1) begin : RAM_DBG_RDATA
+      always @(*) begin
+        dbg_ram_rdata = 0;
         if(dbg_ramchip_rdata_vld[i]) begin
-          dbg_ram_rdata = dbg_ramchip_rdata[i*8+:8];
+          dbg_ram_rdata = dbg_ramchip_rdata[i*BYTE_W+:BYTE_W];
         end
       end
     end
   endgenerate
 
-  assign ram_dout = io_ramchip_out[NUM_RAMS*4-1:0];
+  assign ram_dout = io_ramchip_out[NUM_RAMS*CHAR_W-1:0];
 
   // ------------------------------------------
   // -- 4004 CPU

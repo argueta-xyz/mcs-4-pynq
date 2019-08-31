@@ -13,7 +13,7 @@ module i4002 #(
   input  mcs4::char_t [2:0] dbg_addr,
   input  mcs4::byte_t       dbg_wdata,
   output mcs4::byte_t       dbg_rdata,
-  output                    dbg_rdata_vld,
+  output logic              dbg_rdata_vld,
   input                     dbg_wen,
   input                     dbg_ren
 );
@@ -101,7 +101,7 @@ end
 
 always_ff @(posedge clk) begin : write_mem
   if(dbg_wen && dbg_sel) begin
-    mem[dbg_reg_index][dbg_byte_index+:2] <= dbg_wdata;
+    {mem[dbg_reg_index][dbg_byte_index+1], mem[dbg_reg_index][dbg_byte_index]} <= dbg_wdata;
   end else begin
     if(icyc == mcs4::X2 && opa_received && chip_sel) begin
       case (opa)
