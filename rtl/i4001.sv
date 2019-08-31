@@ -61,19 +61,20 @@ always_ff @(posedge clk) begin : proc_in_addr
 end
 
 // ROM memory
+logic dbg_sel;
 mcs4::byte_t rom_array [mcs4::Bytes_per_rom-1:0];
 mcs4::char_t [1:0] rdata;
+assign dbg_sel = dbg_addr[2] == ROM_ID;
 always_ff @(posedge clk) begin : proc_rdata
-  dbg_rdata_vld <= 1'b0;
-  if(dbg_wen && dbg_addr[2] == ROM_ID) begin
+  if(dbg_wen && dbg_sel) begin
     rom_array[dbg_addr[1:0]] <= dbg_wdata;
   end
-  if(dbg_ren && dbg_addr[2] == ROM_ID) begin
+  if(dbg_ren && dbg_sel) begin
     rdata <= rom_array[dbg_addr[1:0]];
-    dbg_rdata_vld <= 1'b1;
   end else begin
     rdata <= rom_array[in_addr[1:0]];
   end
+  dbg_rdata_vld <= dbg_ren && dbg_sel;
 end
 assign dbg_rdata = rdata;
 

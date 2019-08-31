@@ -21,9 +21,9 @@ module mcs4_sys_tb (
   input  wire                                s_axi_rready
 );
 
-localparam integer NUM_ROMS     = 2;
-localparam integer NUM_RAM_ROWS = 2;
-localparam integer NUM_RAM_COLS = 1;
+localparam integer NUM_ROMS     = 16;
+localparam integer NUM_RAM_ROWS = 4;
+localparam integer NUM_RAM_COLS = 4;
 localparam [63:0]  ROM_IO_MASK  = 64'hFFFFFFFFFFFFFFFF;
 
 localparam integer C_S_AXI_ID_WIDTH     = 1;

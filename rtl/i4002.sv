@@ -81,9 +81,7 @@ assign dbus_en = opa_received && opa_rd && chip_sel && (icyc == mcs4::X2);
 always_ff @(posedge clk) begin : read_mem
   if(dbg_ren && dbg_sel) begin
     dbg_rdata <= mem[dbg_reg_index][dbg_byte_index+:2];
-    dbg_rdata_vld <= 1'b1;
   end else begin
-    dbg_rdata_vld <= 1'b0;
     if(icyc == mcs4::X1 && opa_received) begin
       case (opa)
         mcs4::SBM : rdata <= mem[reg_index][char_index];
@@ -97,6 +95,7 @@ always_ff @(posedge clk) begin : read_mem
       endcase
     end
   end
+  dbg_rdata_vld <= dbg_ren && dbg_sel;
 end
 
 always_ff @(posedge clk) begin : write_mem
