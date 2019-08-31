@@ -5,11 +5,22 @@ module mcs4_sys_tb (
   input  wire [7 : 0]                        s_axi_awlen,
   input  wire                                s_axi_awvalid,
   output wire                                s_axi_awready,
+  input  wire [2 : 0]                        s_axi_awsize,
+  input  wire [1 : 0]                        s_axi_awburst,
+  input  wire                                s_axi_awlock,
+  input  wire [3 : 0]                        s_axi_awcache,
+  input  wire [2 : 0]                        s_axi_awprot,
+  input  wire [3 : 0]                        s_axi_awqos,
   input  wire [C_S_AXI_DATA_WIDTH-1 : 0]     s_axi_wdata,
   input  wire [(C_S_AXI_DATA_WIDTH/8)-1 : 0] s_axi_wstrb,
   input  wire                                s_axi_wlast,
   input  wire                                s_axi_wvalid,
   output wire                                s_axi_wready,
+  output wire [C_S_AXI_ID_WIDTH-1 : 0]       s_axi_bid,
+  output wire [1 : 0]                        s_axi_bresp,
+  output wire [C_S_AXI_BUSER_WIDTH-1 : 0]    s_axi_buser,
+  output wire                                s_axi_bvalid,
+  input  wire                                s_axi_bready,
   input  wire [C_S_AXI_ADDR_WIDTH-1 : 0]     s_axi_araddr,
   input  wire [7 : 0]                        s_axi_arlen,
   input  wire                                s_axi_arvalid,
@@ -152,21 +163,10 @@ mcs4_sys #(
 );
 
 // Drive unused
-assign s_axi_awid     = 0;
-assign s_axi_awsize   = 0;
-assign s_axi_awburst  = 0;
-assign s_axi_awlock   = 0;
-assign s_axi_awcache  = 0;
-assign s_axi_awprot   = 0;
-assign s_axi_awqos    = 0;
 assign s_axi_awregion = 0;
 assign s_axi_awuser   = 0;
 assign s_axi_wuser    = 0;
-assign s_axi_bid      = 0;
-assign s_axi_bresp    = 0;
 assign s_axi_buser    = 0;
-assign s_axi_bvalid   = 0;
-assign s_axi_bready   = 0;
 assign s_axi_arid     = 0;
 assign s_axi_arsize   = 0;
 assign s_axi_arburst  = 0;
