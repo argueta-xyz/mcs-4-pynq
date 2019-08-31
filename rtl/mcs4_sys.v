@@ -91,11 +91,11 @@
   // ------------------------------------------
   // -- AXI Slave
   // ------------------------------------------
-  wire [13:0] dbg_addr;
-  wire [7:0]  dbg_wdata;
-  wire [7:0]  dbg_rdata;
-  wire        dbg_wen;
-  wire        dbg_ren;
+  (* mark_debug = "true" *) wire [13:0] dbg_addr;
+  (* mark_debug = "true" *) wire [7:0]  dbg_wdata;
+  (* mark_debug = "true" *) wire [7:0]  dbg_rdata;
+  (* mark_debug = "true" *) wire        dbg_wen;
+  (* mark_debug = "true" *) wire        dbg_ren;
   mcs4_sys_s_axi # (
     .C_S_AXI_ID_WIDTH    (C_S_AXI_ID_WIDTH),
     .C_S_AXI_DATA_WIDTH  (C_S_AXI_DATA_WIDTH),
@@ -150,11 +150,11 @@
   (* mark_debug = "true" *) wire        dbg_rom_wen;
   (* mark_debug = "true" *) wire        dbg_rom_ren;
 
-  wire [11:0] dbg_ram_addr;
-  wire [7:0]  dbg_ram_wdata;
-  reg  [7:0]  dbg_ram_rdata;
-  wire        dbg_ram_wen;
-  wire        dbg_ram_ren;
+  (* mark_debug = "true" *) wire [11:0] dbg_ram_addr;
+  (* mark_debug = "true" *) wire [7:0]  dbg_ram_wdata;
+  (* mark_debug = "true" *) reg  [7:0]  dbg_ram_rdata;
+  (* mark_debug = "true" *) wire        dbg_ram_wen;
+  (* mark_debug = "true" *) wire        dbg_ram_ren;
 
   wire        dbg_rom_in_drive;
   /* verilator lint_off UNUSED */
