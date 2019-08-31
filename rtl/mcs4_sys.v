@@ -264,14 +264,15 @@
       end
       assign d_rom[i] = |d_romchip_bus[i*NUM_ROMS+:NUM_ROMS];
     end
-    always @(*) begin
-      for (i = 0; i < NUM_ROMS; i=i+1) begin : ROM_DBG_RDATA
-        if(dbg_romchip_rdata_vld[i]) begin
-          dbg_rom_rdata = dbg_romchip_rdata[i*BYTE_W+:BYTE_W];
-        end
+  endgenerate
+  integer m;
+  always @(*) begin
+    for (m = 0; m < NUM_ROMS; m=m+1) begin : ROM_DBG_RDATA
+      if(dbg_romchip_rdata_vld[i]) begin
+        dbg_rom_rdata = dbg_romchip_rdata[i*BYTE_W+:BYTE_W];
       end
     end
-  endgenerate
+  end
 
   assign cl_rom = 0;
   assign io_romchip_in[NUM_ROMS*CHAR_W-1:0] = dbg_rom_in_drive ? dbg_rom_in[NUM_ROMS*CHAR_W-1:0] :
@@ -323,14 +324,14 @@
       end
       assign d_ram[i] = |d_ramchip_bus[i*NUM_RAMS+:NUM_RAMS];
     end
-    always @(*) begin
-      for (i = 0; i < NUM_RAMS; i=i+1) begin : RAM_DBG_RDATA
-        if(dbg_ramchip_rdata_vld[i]) begin
-          dbg_ram_rdata = dbg_ramchip_rdata[i*BYTE_W+:BYTE_W];
-        end
+  endgenerate
+  always @(*) begin
+    for (m = 0; m < NUM_RAMS; m=m+1) begin : RAM_DBG_RDATA
+      if(dbg_ramchip_rdata_vld[i]) begin
+        dbg_ram_rdata = dbg_ramchip_rdata[i*BYTE_W+:BYTE_W];
       end
     end
-  endgenerate
+  end
 
   assign ram_dout = io_ramchip_out[NUM_RAMS*CHAR_W-1:0];
 
