@@ -268,8 +268,8 @@
   integer m;
   always @(*) begin
     for (m = 0; m < NUM_ROMS; m=m+1) begin : ROM_DBG_RDATA
-      if(dbg_romchip_rdata_vld[i]) begin
-        dbg_rom_rdata = dbg_romchip_rdata[i*BYTE_W+:BYTE_W];
+      if(dbg_romchip_rdata_vld[m]) begin
+        dbg_rom_rdata = dbg_romchip_rdata[m*BYTE_W+:BYTE_W];
       end
     end
   end
@@ -327,8 +327,8 @@
   endgenerate
   always @(*) begin
     for (m = 0; m < NUM_RAMS; m=m+1) begin : RAM_DBG_RDATA
-      if(dbg_ramchip_rdata_vld[i]) begin
-        dbg_ram_rdata = dbg_ramchip_rdata[i*BYTE_W+:BYTE_W];
+      if(dbg_ramchip_rdata_vld[m]) begin
+        dbg_ram_rdata = dbg_ramchip_rdata[m*BYTE_W+:BYTE_W];
       end
     end
   end
