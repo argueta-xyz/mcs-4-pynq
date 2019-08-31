@@ -7,11 +7,18 @@ public:
 
     virtual void axiWrite(int addr, int wdata, int wstrb=0xF) {
         int timeout = 100;
-        this->m_core->s_axi_wdata = wdata;
-        this->m_core->s_axi_awaddr = addr;
+        this->m_core->s_axi_awaddr  = addr;
+        this->m_core->s_axi_awburst = 0x1;
+        this->m_core->s_axi_awcache = 0x2;
+        this->m_core->s_axi_awlen   = 0x0;
+        this->m_core->s_axi_awlock  = 0;
+        this->m_core->s_axi_awprot  = 0x0;
+        this->m_core->s_axi_awqos   = 0x0;
+        this->m_core->s_axi_awsize  = 0x2;
         this->m_core->s_axi_awvalid = 1;
-        this->m_core->s_axi_wvalid = 0;
-        this->m_core->s_axi_wlast = 0;
+
+        this->m_core->s_axi_wlast   = 0;
+        this->m_core->s_axi_wvalid  = 0;
         this->tick();
         while (this->m_core->s_axi_awready == 0 && timeout > 0) {
             this->tick();
@@ -19,16 +26,15 @@ public:
         }
         this->m_core->s_axi_awvalid = 0;
         if (this->checkTimeout(timeout, "WRITE (Addr)", addr)){
-            this->m_core->s_axi_wdata = 0;
-            this->m_core->s_axi_awaddr = 0;
+            this->m_core->s_axi_awaddr  = 0;
             this->m_core->s_axi_awvalid = 0;
-            this->m_core->s_axi_wvalid = 0;
-            this->m_core->s_axi_wlast = 0;
             return;
         }
+        this->m_core->s_axi_wdata  = wdata;
         this->m_core->s_axi_wvalid = 1;
-        this->m_core->s_axi_wlast = 1;
-        this->m_core->s_axi_wstrb = wstrb;
+        this->m_core->s_axi_wlast  = 1;
+        this->m_core->s_axi_wstrb  = wstrb;
+        this->m_core->s_axi_bready = 1;
         this->tick();
         while (this->m_core->s_axi_wready == 0 && timeout > 0) {
             this->tick();
@@ -38,6 +44,11 @@ public:
         this->tick();
         this->m_core->s_axi_wvalid = 0;
         this->m_core->s_axi_wlast = 0;
+        while (this->m_core->s_axi_bvalid == 0 && timeout > 0) {
+            this->tick();
+            timeout--;
+        }
+        this->checkTimeout(timeout, "WRITE (Bresp)", addr);
     }
 
     virtual int axiRead(int addr) {
