@@ -144,11 +144,11 @@
   // ------------------------------------------
   // -- Debug Controller
   // ------------------------------------------
-  wire [11:0] dbg_rom_addr;
-  wire [7:0]  dbg_rom_wdata;
-  reg  [7:0]  dbg_rom_rdata;
-  wire        dbg_rom_wen;
-  wire        dbg_rom_ren;
+  (* mark_debug = "true" *) wire [11:0] dbg_rom_addr;
+  (* mark_debug = "true" *) wire [7:0]  dbg_rom_wdata;
+  (* mark_debug = "true" *) reg  [7:0]  dbg_rom_rdata;
+  (* mark_debug = "true" *) wire        dbg_rom_wen;
+  (* mark_debug = "true" *) wire        dbg_rom_ren;
 
   wire [11:0] dbg_ram_addr;
   wire [7:0]  dbg_ram_wdata;
