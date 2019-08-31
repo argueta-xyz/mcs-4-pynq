@@ -130,6 +130,7 @@ if { $bCheckIPs == 1 } {
 xilinx.com:ip:xlconstant:1.1\
 xilinx.com:ip:smartconnect:1.0\
 xilinx.com:ip:xlconcat:2.1\
+xilinx.com:ip:ila:6.2\
 argueta.xyz:user:mcs4:1.0\
 xilinx.com:ip:processing_system7:5.5\
 xilinx.com:ip:proc_sys_reset:5.0\
@@ -228,6 +229,12 @@ proc create_root_design { parentCell } {
    CONFIG.IN2_WIDTH {2} \
    CONFIG.NUM_PORTS {3} \
  ] $hio_concat
+
+  # Create instance: ila_0, and set properties
+  set ila_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:ila:6.2 ila_0 ]
+  set_property -dict [ list \
+   CONFIG.C_DATA_DEPTH {2048} \
+ ] $ila_0
 
   # Create instance: mcs4_0, and set properties
   set mcs4_0 [ create_bd_cell -type ip -vlnv argueta.xyz:user:mcs4:1.0 mcs4_0 ]
@@ -1013,6 +1020,7 @@ proc create_root_design { parentCell } {
 
   # Create interface connections
   connect_bd_intf_net -intf_net axi_smc_M00_AXI [get_bd_intf_pins axi_smc/M00_AXI] [get_bd_intf_pins mcs4_0/S_AXI]
+connect_bd_intf_net -intf_net [get_bd_intf_nets axi_smc_M00_AXI] [get_bd_intf_pins axi_smc/M00_AXI] [get_bd_intf_pins ila_0/SLOT_0_AXI]
   connect_bd_intf_net -intf_net mcs4_0_ram_dout [get_bd_intf_ports leds] [get_bd_intf_pins mcs4_0/ram_dout]
   connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins processing_system7_0/DDR]
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins processing_system7_0/FIXED_IO]
@@ -1021,7 +1029,7 @@ proc create_root_design { parentCell } {
   # Create port connections
   connect_bd_net -net GND_dout [get_bd_pins GND/dout] [get_bd_pins hio_concat/In2]
   connect_bd_net -net btn_1 [get_bd_ports btn] [get_bd_pins hio_concat/In1]
-  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins axi_smc/aclk] [get_bd_pins mcs4_0/s_axi_aclk] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk]
+  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins axi_smc/aclk] [get_bd_pins ila_0/clk] [get_bd_pins mcs4_0/s_axi_aclk] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rst_ps7_0_100M/ext_reset_in]
   connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins axi_smc/aresetn] [get_bd_pins mcs4_0/s_axi_aresetn] [get_bd_pins rst_ps7_0_100M/peripheral_aresetn]
   connect_bd_net -net sw_1 [get_bd_ports sw] [get_bd_pins hio_concat/In0]
