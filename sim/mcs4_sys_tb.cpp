@@ -4,7 +4,6 @@
 #include <sstream>
 #include <stdlib.h>
 #include "svdpi.h"
-// #include "testbench.h"
 #include "axi_testbench.h"
 #include "verilated.h"
 #include "Vmcs4_sys_tb.h"
@@ -58,33 +57,26 @@ vector<int> parseRom(string filename) {
 
 void initMemory(AXI_TESTBENCH<Vmcs4_sys_tb>* tb, vector<int> rom_bytes) {
     // Write ROMs while in reset
-    // tb->reset();
     for (int addr = 0; addr < rom_bytes.size(); addr+=4) {
         int wdata = (rom_bytes[addr + 0]  & 0xFF) << 0  |
                     (rom_bytes[addr + 1]  & 0xFF) << 8  |
                     (rom_bytes[addr + 2]  & 0xFF) << 16 |
                     (rom_bytes[addr + 3]  & 0xFF) << 24;
         tb->axiWrite(ROM_BASE_ADDR | addr, wdata);
-        // axiWrite(tb, ROM_BASE_ADDR | addr, wdata);
         int out = tb->axiRead(ROM_BASE_ADDR | addr);
         if (out != wdata) {
             cout << "ERROR: RData[" << hex << addr << "] != WData:\n\tExp: " <<
                     wdata << "\n\tGot: " << out << dec << endl;
         }
     }
-    // tb->tick();
     cout << "Done initializing " << dec << rom_bytes.size() << " bytes" << endl;
 }
 
 void setResets(AXI_TESTBENCH<Vmcs4_sys_tb>* tb, int cpu, int rom, int ram) {
-    // axiWrite(tb, CTL_BASE_ADDR | 0x0, ram << 2 | rom << 1 | cpu);
     tb->axiWrite(CTL_BASE_ADDR | 0x0, ram << 2 | rom << 1 | cpu);
 }
 
 void setInputs(AXI_TESTBENCH<Vmcs4_sys_tb>* tb, int hi, int lo) {
-    // axiWrite(tb, CTL_BASE_ADDR | 0x10, 0x1);
-    // axiWrite(tb, IO_BASE_ADDR | 0x0, lo);
-    // axiWrite(tb, IO_BASE_ADDR | 0x4, hi);
     tb->axiWrite(CTL_BASE_ADDR | 0x10, 0x1);
     tb->axiWrite(IO_BASE_ADDR  | 0x0, lo);
     tb->axiWrite(IO_BASE_ADDR  | 0x4, hi);
