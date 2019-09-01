@@ -61,5 +61,5 @@ class Mcs4Driver(DefaultIP):
         return self.read_block(self.RAM_BASE_ADDR + addr, size)
 
     def zero_ram(self):
-        for i in xrange(0, 128):
+        for i in range(0, 128):
             self.write(self.RAM_BASE_ADDR + i * 4, 0x0)
