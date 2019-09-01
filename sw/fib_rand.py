@@ -19,7 +19,7 @@ def main():
       fibs[2] = fibs[1] + fibs[0]
       fibs[2] = 0x7F & fibs[2]
     f = fibs[2]
-  print(f)
+  print(hex(f))
 
 
 if __name__ == '__main__':
