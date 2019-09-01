@@ -70,13 +70,12 @@ always_ff @(posedge clk) begin : proc_rdata
     rom_array[dbg_addr[1:0]] <= dbg_wdata;
   end
   if(dbg_ren && dbg_sel) begin
-    rdata <= rom_array[dbg_addr[1:0]];
+    dbg_rdata <= rom_array[dbg_addr[1:0]];
   end else begin
     rdata <= rom_array[in_addr[1:0]];
   end
   dbg_rdata_vld <= dbg_ren && dbg_sel;
 end
-assign dbg_rdata = rdata;
 
 // DBus output
 logic io_rden, rom_rden;
