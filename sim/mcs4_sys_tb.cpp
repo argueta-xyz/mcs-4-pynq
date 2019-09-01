@@ -133,7 +133,7 @@ int main(int argc, char **argv, char** env) {
     while(time < timeout && !tb->done()) {
         tb->tick();
         time++;
-        cout << "\rTick #" << time << flush;
+        cout << "\rTick #" << dec << time << flush;
         if (time % 500 == 0x6) {
             int ram_out = tb->axiRead(IO_BASE_ADDR | 0x20);
             if(ram_out == 0x6){
