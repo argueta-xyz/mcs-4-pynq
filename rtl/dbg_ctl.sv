@@ -6,7 +6,7 @@ module dbg_ctl (
   (* mark_debug = "true" *) input  logic        dbg_ren,
   (* mark_debug = "true" *) input  mcs4::byte_t dbg_wdata,
   (* mark_debug = "true" *) output mcs4::byte_t dbg_rdata,
-  (* mark_debug = "true" *) output              dbg_rdata_vld,
+  (* mark_debug = "true" *) output logic        dbg_rdata_vld,
 
   (* mark_debug = "true" *) output dbg::seg_addr_t rom_addr,
   (* mark_debug = "true" *) output mcs4::byte_t    rom_wdata,
