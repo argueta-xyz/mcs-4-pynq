@@ -65,14 +65,18 @@ logic dbg_sel;
 mcs4::byte_t rom_array [mcs4::Bytes_per_rom-1:0];
 mcs4::char_t [1:0] rdata;
 assign dbg_sel = dbg_addr[2] == ROM_ID;
-always_ff @(posedge clk) begin : proc_rdata
+(* mark_debug = "true" *)  mcs4::byte_t rom_raddr;
+assign rom_raddr = dbg_sel && dbg_ren ? dbg_addr[1:0] : in_addr[1:0];
+always_ff @(posedge clk) begin : proc_wdata
   if(dbg_wen && dbg_sel) begin
     rom_array[dbg_addr[1:0]] <= dbg_wdata;
   end
+end
+always_ff @(posedge clk) begin : proc_rdata
   if(dbg_ren && dbg_sel) begin
-    dbg_rdata <= rom_array[dbg_addr[1:0]];
+    dbg_rdata <= rom_array[rom_raddr];
   end else begin
-    rdata <= rom_array[in_addr[1:0]];
+    rdata <= rom_array[rom_raddr];
   end
   dbg_rdata_vld <= dbg_ren && dbg_sel;
 end
