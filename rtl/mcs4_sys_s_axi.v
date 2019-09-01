@@ -500,7 +500,7 @@
   reg [ADDR_LSB-1:0] byte_index;
   always @(posedge S_AXI_ACLK) begin
     if (dbg_rdata_vld) begin
-      axi_rdata <= {axi_rdata[23:0], dbg_rdata};
+      axi_rdata <= {dbg_rdata, axi_rdata[31:8]};
     end
   end
 
