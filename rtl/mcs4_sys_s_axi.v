@@ -521,7 +521,7 @@
       wcycle_count <= S_AXI_WVALID ? (wcycle_count > 0 ? wcycle_count - 1 : 0) : 3'd4;
       rcycle_count <= axi_arv_arr_flag ? (rcycle_count > 0 ? rcycle_count - 1 : 0) : 4'd9;
     end
-    byte_index <= stall ? byte_index - 2'd1 : 2'd0;
+    byte_index <= (dbg_ren | dbg_wen) ? (byte_index < 2'd3 ? byte_index + 2'd1 : 2'd3) : 2'd0;
   end
   assign dbg_addr  = axi_awv_awr_flag ? {axi_awaddr[DBG_ADDR_WIDTH-1:ADDR_LSB], byte_index} :
                                         {axi_araddr[DBG_ADDR_WIDTH-1:ADDR_LSB], byte_index};
