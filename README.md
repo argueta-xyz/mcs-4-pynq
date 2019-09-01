@@ -39,6 +39,13 @@ vivado -mode batch -source ./mcs4pynq_proj.tcl
 start_gui
 ```
 
+### Running on Pynq
+1. Upload entire sw/pynq folder to Pynq
+2. Move .bit and .tcl to /overlays/mcs4/
+3. Open mcs4_boot notebook and run.
+
+![Image of MCS4 running on Pynq](/doc/fib_rand_on_pynq.png)
+
 ### Tools Required
 1. Vivado 2019.1 WebPack (license for Zynq-Z7020)
 2. Verilator
