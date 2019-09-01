@@ -23,6 +23,7 @@
     output wire                      dbg_wen,
     output wire                      dbg_ren,
     input  wire [DBG_DATA_WIDTH-1:0] dbg_rdata,
+    input  wire                      dbg_rdata_vld,
     // User ports ends
     // Do not modify the ports beyond this line
 
@@ -497,11 +498,8 @@
   // -- 32bit word to 8bit word R/W conversion
   // ------------------------------------------
   reg [ADDR_LSB-1:0] byte_index;
-  reg dbg_ren_d1, dbg_ren_d2;
   always @(posedge S_AXI_ACLK) begin
-    dbg_ren_d1 <= dbg_ren;
-    dbg_ren_d2 <= dbg_ren_d1;
-    if (dbg_ren_d2) begin
+    if (dbg_rdata_vld) begin
       axi_rdata <= {axi_rdata[23:0], dbg_rdata};
     end
   end
