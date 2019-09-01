@@ -63,3 +63,11 @@ class Mcs4Driver(DefaultIP):
     def zero_ram(self):
         for i in range(0, 128):
             self.write(self.RAM_BASE_ADDR + i * 4, 0x0)
+
+    def read_idx(self):
+        idxr_07 = self.read(self.CTL_BASE_ADDR + 0x8)
+        idxr_8F = self.read(self.CTL_BASE_ADDR + 0xC)
+        lo_regs = [(idxr_07 >> (r * 8)) & 0xFF for r in range(0, 4)]
+        hi_regs = [(idxr_8F >> (r * 8)) & 0xFF for r in range(0, 4)]
+        hi_regs.extend(lo_regs)
+        return hi_regs
