@@ -195,6 +195,7 @@ done	FIM R2R3, $00
 		SRC R2R3
 		LDM $6 		; Write to RAM output port
 		WMP
+donelp  JUN donelp
 
 CAZ=%0010
 CANZ=%0011
