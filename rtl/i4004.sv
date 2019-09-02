@@ -353,6 +353,7 @@ end
 
 // Adder
 mcs4::char_t cm_ram_buf;
+mcs4::char_t dbus_in_buf;
 always_ff @(posedge clk) begin : proc_accum
   if(rst) begin
     accum <= 0;
@@ -374,9 +375,9 @@ always_ff @(posedge clk) begin : proc_accum
             mcs4::RD2 : accum <= dbus_in;
             mcs4::RD3 : accum <= dbus_in;
             mcs4::RDR : accum <= dbus_in;
-            mcs4::ADM : {carry, accum} <= {carry, accum} + dbus_in;
-            mcs4::SBM : {carry, accum} <= {carry, accum} - dbus_in;
-            default :   ;
+            mcs4::ADM : dbus_in_buf <= dbus_in; // These instructions are pipelined into the next
+            mcs4::SBM : dbus_in_buf <= dbus_in; // cycle for timing since they don't actually need
+            default :   ;                       // the responses until at soonest the next A1
           endcase
         end
         mcs4::ACCUM_GRP : begin
@@ -416,6 +417,16 @@ always_ff @(posedge clk) begin : proc_accum
           endcase
         end
         default : /* default */  ;
+      endcase
+    end
+    if(icyc == mcs4::X3 && opr_code == mcs4::IORAM_GRP) begin
+      // Handle these instructions a cycle later to avoid having both the ROM/RAM muxing and adding
+      // logic on one cycle. Functionality isn't affected since accum wont be used again in this
+      // instruction.
+      case(ioram_opa_code)
+        mcs4::ADM : {carry, accum} <= {carry, accum} + dbus_in_buf;
+        mcs4::SBM : {carry, accum} <= {carry, accum} - dbus_in_buf;
+        default: ;
       endcase
     end
   end

@@ -101,14 +101,18 @@ always_ff @(posedge clk) begin : proc_rst
   end
 end
 
-assign rom_addr  = dbg_addr.addr;
-assign rom_wdata = dbg_wdata;
-assign rom_wen   = dbg_wen && dbg_addr.seg == dbg::ROM;
-assign rom_ren   = dbg_ren && dbg_addr.seg == dbg::ROM;
+always_ff @(posedge clk) begin : proc_rom_rw_ctl
+  rom_addr  <= dbg_addr.addr;
+  rom_wdata <= dbg_wdata;
+  rom_wen   <= dbg_wen && dbg_addr.seg == dbg::ROM;
+  rom_ren   <= dbg_ren && dbg_addr.seg == dbg::ROM;
+end
 
-assign ram_addr  = dbg_addr.addr;
-assign ram_wdata = dbg_wdata;
-assign ram_wen   = dbg_wen && dbg_addr.seg == dbg::RAM;
-assign ram_ren   = dbg_ren && dbg_addr.seg == dbg::RAM;
+always_ff @(posedge clk) begin : proc_ram_rw_ctl
+  ram_addr  <= dbg_addr.addr;
+  ram_wdata <= dbg_wdata;
+  ram_wen   <= dbg_wen && dbg_addr.seg == dbg::RAM;
+  ram_ren   <= dbg_ren && dbg_addr.seg == dbg::RAM;
+end
 
 endmodule
